@@ -102,6 +102,7 @@ button:active{transform:scale(.98)}
 .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:99px;background:var(--card2);border:1px solid var(--line);color:var(--mut);margin-left:4px;vertical-align:middle}
 .tag.fst{background:rgba(255,107,138,.15);border-color:rgba(255,107,138,.5);color:#ff9fb3}
 .tag.hd{background:rgba(90,169,255,.15);border-color:rgba(90,169,255,.5);color:#9ccbff}
+.tag.m{background:rgba(180,140,255,.15);border-color:rgba(180,140,255,.5);color:#cdb6ff}
 .tag.ss{background:rgba(255,182,72,.15);border-color:rgba(255,182,72,.5);color:#ffd08a}
 .ex{padding:10px 0;border-top:1px solid var(--line)}
 .ex:first-of-type{border-top:0}
@@ -296,7 +297,7 @@ li{margin:3px 0}
 <section class="view" id="v-entreno">
   <div class="card">
     <h2>Tu plan de entrenamiento</h2>
-    <p class="small mut" style="margin-top:0">Basado en tu tipo de cuerpo y el tiempo que tienes. Base <b>Heavy Duty</b> (Mike Mentzer: pocas series, al fallo, mucho descanso) y en algunas sesiones un final <b>FST-7</b> (Hany Rambod: 7 series de bombeo con descansos cortos).</p>
+    <p class="small mut" style="margin-top:0">Elige entre 11 métodos (Heavy Duty, FST-7, 5/3/1, 5×5, PHUL, Y3T, DC, 10×10, hipertrofia basada en evidencia, circuitos o calistenia en casa) o deja que la app te recomiende según tu cuerpo, nivel y tiempo.</p>
     <form id="trForm">
       <label>Tipo de cuerpo (somatotipo)</label>
       <select id="tSomato">
@@ -318,29 +319,16 @@ li{margin:3px 0}
       </div>
       <div style="margin-top:10px"><label>Objetivo</label>
         <select id="tGoal"><option value="bajar">Bajar grasa</option><option value="recomp">Recomposición</option><option value="mantener">Mantener / salud</option><option value="subir" selected>Ganar músculo</option></select></div>
+      <div style="margin-top:10px"><label>Método de entrenamiento</label><select id="tMeth"><option value="auto">Automático según tu cuerpo (Heavy Duty + FST-7)</option><option value="hd">Heavy Duty — Mike Mentzer</option><option value="fst7">FST-7 — Hany Rambod</option><option value="evid">Hipertrofia basada en evidencia — Schoenfeld</option><option value="y3t">Y3T — Neil Hill</option><option value="dc">DC Training — Dante Trudel</option><option value="gvt">German Volume Training 10×10</option><option value="phul">PHUL: fuerza + hipertrofia</option><option value="w531">5/3/1 — Jim Wendler</option><option value="s5x5">5×5 de fuerza (principiantes)</option><option value="circ">Circuito metabólico + HIIT (quemar grasa)</option><option value="casa">Calistenia / en casa (sin gym)</option></select>
+        <div id="methRec"></div><div id="methDesc" class="sel small" style="margin-top:8px"></div></div>
       <button class="pri full" type="submit" style="margin-top:14px">Generar entrenamiento</button>
     </form>
   </div>
   <div id="trRes"></div>
   <div class="card">
-    <h2>Cómo aplicar las técnicas</h2>
-    <details open><summary><span class="tag hd" style="margin:0 6px 0 0">HD</span>Heavy Duty — Mike Mentzer</summary>
-      <ul class="small">
-        <li>1–2 series de calentamiento progresivo y luego <b>1 serie efectiva hasta el fallo muscular</b> (no puedes hacer ni una repetición más con buena técnica).</li>
-        <li><b>Tempo lento:</b> ~4 s subiendo, 1–2 s de pausa, ~4 s bajando. Nada de rebotes.</li>
-        <li><b>Pre-agotamiento:</b> un ejercicio aislado seguido <i>sin descanso</i> de uno compuesto (ej. aperturas → press inclinado).</li>
-        <li>Avanzados: tras el fallo, 2–3 <b>repeticiones forzadas</b> o <b>rest-pause</b> (10–15 s de pausa y 1–2 reps más). No en cada serie.</li>
-        <li><b>Descanso total</b> es parte del entreno: si no progresas en fuerza, entrena menos, no más.</li>
-      </ul>
-    </details>
-    <details><summary><span class="tag fst" style="margin:0 6px 0 0">FST-7</span>Fascia Stretch Training — Hany Rambod</summary>
-      <ul class="small">
-        <li>Es el <b>último ejercicio</b> del músculo trabajado: <b>7 series de 8–12 reps</b> con solo <b>30–45 s</b> de descanso.</li>
-        <li>Prefiere máquinas o poleas (más seguras con fatiga). Las últimas series costarán: baja el peso si hace falta, pero mantén las reps.</li>
-        <li>Entre series <b>estira y contrae</b> el músculo (posa) y toma agua: buscas el máximo bombeo.</li>
-        <li>Úsalo con moderación: aquí lo aplicamos solo en algunas sesiones para no chocar con la recuperación que pide Heavy Duty.</li>
-      </ul>
-    </details>
+    <h2>Métodos de entrenamiento</h2>
+    <p class="small mut" style="margin-top:0">Toca cada uno para ver cómo se hace.</p>
+    <div id="methInfo"></div>
     <details><summary>Sobre los somatotipos</summary>
       <p class="small">El ectomorfo/mesomorfo/endomorfo es una guía práctica, no una ciencia exacta: la mayoría somos mezcla. Úsalo como punto de partida y ajusta según tu progreso real (fuerza, peso y medidas cada 2–4 semanas).</p>
     </details>
@@ -847,7 +835,7 @@ const SPLITS={
 };
 const WEEK={2:[0,3],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,3,4],6:[0,1,2,3,4,5]};
 const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-function genPlan(o){
+function genAuto(o,ov={}){
   const {somato,days,min,lvl,lag,goal:g}=o;
   const beginner=lvl==="pri";
   // estilo
@@ -857,6 +845,7 @@ function genPlan(o){
   else{style="dens";perEx=6;fstPerWeek=3}
   if(beginner){style="pri";perEx=7;fstPerWeek=Math.min(fstPerWeek,1)}
   if(g==="bajar"&&somato!=="endo")fstPerWeek=Math.min(fstPerWeek+1,3);
+  if(ov.hd){if(!beginner){style="hd";perEx=5}fstPerWeek=0}
   fstPerWeek=Math.min(fstPerWeek,days);
   const S_={hd:{sets:"1–2 calentamiento + 1 serie al fallo",reps:"6–10 reps",rest:"2–3 min"},
     dens:{sets:"1 calentamiento + 2 series al fallo",reps:"8–12 reps",rest:"60–90 s"},
@@ -888,14 +877,14 @@ function genPlan(o){
         const ss=style!=="pri"&&e.t==="pre"&&list[j+1]&&list[j+1].t==="post";
         const post=style!=="pri"&&e.t==="post"&&list[j-1]&&list[j-1].t==="pre";
         const legs=["cuad","femoral","gemelo"].includes(m);
-        exs.push({m:EX[m].n,n:e.n,sets:S_.sets,reps:legs&&style!=="hd"?"10–15 reps":(m==="gemelo"?"10–15 reps":S_.reps),rest:ss?"sin descanso → siguiente":S_.rest,ss,post});
+        exs.push({ns:style==="hd"?1:2,m:EX[m].n,n:e.n,sets:S_.sets,reps:legs&&style!=="hd"?"10–15 reps":(m==="gemelo"?"10–15 reps":S_.reps),rest:ss?"sin descanso → siguiente":S_.rest,ss,post});
       });
-      if(m===fstMus)exs.push({m:EX[m].n,n:EX[m].fst,fst:true,sets:"7 series",reps:"8–12 reps",rest:"30–45 s (estira y posa)"});
+      if(m===fstMus)exs.push({ns:7,m:EX[m].n,n:EX[m].fst,fst:true,sets:"7 series",reps:"8–12 reps",rest:"30–45 s (estira y posa)"});
     });
     let extra="";
     if(cardio&&min>=60)extra=`Cardio al final: ${somato==="endo"?"20 min caminata inclinada o bici moderada":"15 min caminata rápida"}.`;
     else if(cardio)extra="Haz 20–30 min de cardio suave en días libres (caminar, bici).";
-    return {name,exs,hasFst,extra};
+    return {name,exs,hasFst,extra,tag:hasFst?["fst","FST-7"]:ov.hd||style!=="pri"?["hd","HD"]:["m","BASE"]};
   });
   const notes=[];
   if(somato==="ecto"){notes.push("Ectomorfo: entrenamiento breve y muy intenso, con mucho descanso. Lo que más te hará crecer es recuperarte y comer en superávit ligero.");if(days>3)notes.push("Mentzer recomendaría 2–3 sesiones por semana para tu perfil. Si no progresas en fuerza, baja a 3 días.")}
@@ -904,33 +893,252 @@ function genPlan(o){
   if(beginner)notes.push("Principiante: aprende la técnica primero. Aún no lleves todas las series al fallo absoluto; quédate a 1–2 reps. Las supersets de pre-agotamiento y forzadas llegan después.");
   if(lvl==="ava"&&style!=="pri")notes.push("Avanzado: en la última serie de los ejercicios compuestos puedes añadir 2–3 repeticiones forzadas o un rest-pause. Máximo una técnica de intensidad por músculo.");
   if(min<=30)notes.push("Con 30 min: entra, calienta y ve directo a las series efectivas. Heavy Duty encaja perfecto con poco tiempo.");
-  return {o,plan,notes,S_,week:WEEK[days],fstPerWeek};
+  if(ov.hd&&days>4)notes.push("Mentzer recomendaba como máximo 3–4 sesiones por semana; con más días te costará recuperarte.");
+  return {o,plan,notes,days,week:WEEK[days],scheme:`${S_.sets} · ${S_.reps} · descanso ${S_.rest}. Cuando completes el máximo de reps con buena técnica, sube el peso 2.5–5%`,weekNote:fstPerWeek?`FST-7 en ${fstPerWeek} sesión(es) por semana.`:""};
 }
+/* ================= MÉTODOS DE ENTRENAMIENTO ================= */
+const METHODS={
+ auto:{n:"Automático según tu cuerpo",by:"Heavy Duty + FST-7 combinados",lvl:"Todos",tag:["hd","AUTO"],
+  desc:"Base Heavy Duty y FST-7 en algunas sesiones; la cantidad depende de tu somatotipo, nivel y objetivo.",
+  how:["Ectomorfo: casi todo Heavy Duty y FST-7 1 vez por semana.","Mesomorfo: Heavy Duty en básicos + FST-7 2 veces por semana.","Endomorfo: más densidad (descansos cortos), FST-7 3 veces por semana y cardio."]},
+ hd:{n:"Heavy Duty",by:"Mike Mentzer",lvl:"Intermedio–avanzado",tag:["hd","HD"],
+  desc:"Muy pocas series llevadas al fallo total, repeticiones lentas y mucho descanso entre entrenos.",
+  how:["1–2 series de calentamiento y luego <b>1 serie efectiva hasta el fallo muscular</b>.","<b>Tempo lento:</b> ~4 s subiendo, pausa, ~4 s bajando.","<b>Pre-agotamiento:</b> ejercicio aislado seguido sin descanso de uno compuesto (aperturas → press inclinado).","Avanzados: 2–3 <b>repeticiones forzadas</b> o <b>rest-pause</b> tras el fallo, no en cada serie.","Si no progresas en fuerza, <b>entrena menos</b>, no más."]},
+ fst7:{n:"FST-7",by:"Hany Rambod",lvl:"Intermedio–avanzado",tag:["fst","FST-7"],
+  desc:"Volumen clásico de culturismo y, al final de cada grupo muscular, 7 series de bombeo con descansos cortos.",
+  how:["Ejercicios básicos 3–4 series de 8–12 reps.","<b>Último ejercicio:</b> 7 series de 8–12 reps con 30–45 s de descanso.","Usa máquinas o poleas en el FST-7; entre series <b>estira y posa</b> y toma agua.","Busca el máximo bombeo: baja el peso si hace falta, pero mantén las reps."]},
+ evid:{n:"Hipertrofia basada en evidencia",by:"Brad Schoenfeld, Mike Israetel y otros",lvl:"Todos",tag:["m","CIENCIA"],
+  desc:"Lo que dicen los estudios: 10–20 series por músculo a la semana, cada músculo 2 veces por semana, cerca del fallo.",
+  how:["Trabaja cada músculo <b>2 veces por semana</b> (mejor que 1 según meta-análisis de Schoenfeld, 2016).","<b>10–20 series efectivas</b> por músculo a la semana.","Deja <b>1–2 repeticiones en reserva</b> (RIR) en básicos; aislados pueden ir al fallo.","Descansa 2–3 min en básicos: descansos largos dan más ganancia que los cortos (Schoenfeld, 2016).","<b>Progresión doble:</b> cuando llegues al tope de reps en todas las series, sube el peso."]},
+ y3t:{n:"Y3T (Yoda 3 Training)",by:"Neil Hill",lvl:"Intermedio–avanzado",tag:["m","Y3T"],
+  desc:"Ciclo de 3 semanas que cambia el estímulo: semana pesada, semana mixta y semana de volumen extremo.",
+  how:["<b>Semana 1:</b> pesada, básicos, 6–10 reps, descansos largos.","<b>Semana 2:</b> mixta, 8–12 reps + una serie de 15–20, algún drop set.","<b>Semana 3:</b> infierno de volumen: 20–30 reps, superseries y series gigantes, descansos cortos.","Repite el ciclo. Anota tus pesos de la semana 1 para superarlos en el siguiente ciclo."]},
+ dc:{n:"DC Training (Doggcrapp)",by:"Dante Trudel",lvl:"Solo avanzados",tag:["m","DC"],
+  desc:"Un ejercicio por músculo en rest-pause brutal, estiramiento extremo y muy poca frecuencia de volumen.",
+  how:["<b>Rest-pause:</b> serie al fallo (7–10 reps), 15 respiraciones profundas, al fallo otra vez, 15 respiraciones y al fallo. Total 11–15 reps.","<b>Estiramiento extremo</b> 60 s del músculo trabajado justo después.","Rota 3 ejercicios por músculo entre sesiones y busca batir tu marca en cada uno.","Cada 6–8 semanas: 1–2 semanas de “cruise” (entrenar suave) para recuperarte.","Sentadilla: serie pesada + <b>widowmaker</b> de 20 reps."]},
+ gvt:{n:"German Volume Training 10×10",by:"Rolf Feser, popularizado por Charles Poliquin",lvl:"Intermedio",tag:["m","10×10"],
+  desc:"10 series de 10 reps con el mismo peso (~60% de tu máximo) en un ejercicio básico. Volumen enorme para crecer.",
+  how:["Usa ~60% de tu 1RM (un peso con el que harías ~20 reps).","<b>10×10</b> con 60–90 s de descanso, alternando dos músculos opuestos (A1/A2).","Tempo 4 s bajando, 2 s subiendo.","Cuando completes las 10×10, sube 2.5–5% el peso la próxima sesión.","Úsalo 4–6 semanas y luego cambia a un bloque de fuerza."]},
+ phul:{n:"PHUL: fuerza + hipertrofia",by:"Brandon Campbell",lvl:"Intermedio",tag:["m","PHUL"],
+  desc:"4 días: 2 de fuerza pesada (3–5 reps) y 2 de hipertrofia (8–12 reps), torso/pierna.",
+  how:["Días de <b>fuerza:</b> básicos 3–5 reps, descansos de 3–5 min.","Días de <b>hipertrofia:</b> 8–12 reps, descansos de 60–90 s.","Sube el peso cuando completes todas las series en el tope de reps.","Ideal si quieres verte grande y además ser fuerte."]},
+ w531:{n:"5/3/1",by:"Jim Wendler",lvl:"Intermedio",tag:["m","5/3/1"],
+  desc:"Fuerza a largo plazo en 4 básicos con porcentajes de tu máximo y progresión lenta pero constante.",
+  how:["<b>Training Max (TM)</b> = 90% de tu 1RM. La app lo calcula con lo que registras.","Semana 1: 65/75/85% × 5, 5, 5+ · Semana 2: 70/80/90% × 3, 3, 3+ · Semana 3: 75/85/95% × 5, 3, 1+ · Semana 4: descarga 40/50/60% × 5.","La última serie “+” es al máximo de reps con buena técnica.","Tras cada ciclo: +2.5 kg al TM de press y +5 kg al de sentadilla y peso muerto.","<b>Boring But Big:</b> 5×10 al 50% del TM para ganar músculo."]},
+ s5x5:{n:"5×5 de fuerza",by:"Reg Park y Bill Starr (popularizado por StrongLifts)",lvl:"Principiante",tag:["m","5×5"],
+  desc:"3 días, pocos ejercicios básicos y subir peso cada sesión. La forma más rápida de ponerse fuerte empezando.",
+  how:["Alterna entreno A y B: semana 1 A-B-A, semana 2 B-A-B.","Empieza ligero (con la barra si hace falta) y <b>sube 2.5 kg cada sesión</b> (5 kg en peso muerto).","Si fallas un peso 3 sesiones seguidas, baja 10% y vuelve a subir.","Descansa 3 min entre series (5 si fallaste la anterior)."]},
+ circ:{n:"Circuito metabólico + HIIT",by:"Entrenamiento por intervalos (Tabata, Gibala)",lvl:"Todos",tag:["m","CIRCUITO"],
+  desc:"Ejercicios de cuerpo completo seguidos con poco descanso y un final de intervalos. Mucho gasto de calorías en poco tiempo.",
+  how:["Haz cada ejercicio <b>40 s</b> y descansa <b>20 s</b>; al terminar la ronda descansa 2 min.","Usa un peso con el que llegues justo a los 40 s con buena técnica.","Final HIIT: intervalos de 30 s fuertes / 60 s suaves en bici o caminadora.","Ideal para bajar grasa; acompáñalo de déficit calórico."]},
+ casa:{n:"Calistenia / en casa",by:"Peso corporal, sin gym",lvl:"Todos",tag:["m","CASA"],
+  desc:"Sin equipo (o con una barra de dominadas y una mochila con peso). Perfecto si no puedes pagar gym.",
+  how:["Progresa haciendo el ejercicio más difícil: flexiones de rodillas → normales → pies elevados → a un brazo asistido.","Series al fallo técnico (cuando la forma se rompe, paras).","Para añadir peso usa una mochila con libros o botellas de agua.","Sube 1–2 reps por serie cada semana; cuando pases de 15–20, usa la versión más difícil."]}
+};
+const COMP=new Set(["Press inclinado con mancuernas","Fondos en paralelas (cuerpo inclinado)","Press de banca con barra","Jalón al pecho con agarre cerrado supino","Remo con barra o en máquina","Dominadas (asistidas si hace falta)","Remo con mancuerna a una mano","Press militar en máquina o con mancuernas","Fondos en paralelas o en banco","Prensa de piernas","Sentadilla con barra","Sentadilla búlgara / zancadas","Peso muerto rumano"]);
+const isC=e=>COMP.has(e.n);
+const MUSN={pecho:"Pecho",espalda:"Espalda",hombro:"Hombros",biceps:"Bíceps",triceps:"Tríceps",cuad:"Cuádriceps",femoral:"Femorales",gemelo:"Pantorrillas",abs:"Abdomen"};
+const X=(m,n,sets,reps,rest,ns,extra)=>Object.assign({m:MUSN[m]||m,n,sets,reps,rest,ns},extra||{});
+function nEx(o,perEx,reserve,cap){let n=Math.max(2,Math.floor((o.min-5-reserve)/perEx));return cap?Math.min(n,cap):n}
+function pickEx(mus,n){
+  n=Math.min(n,mus.reduce((a,m)=>a+(m==="abs"?1:EX[m].l.length),0));
+  const cnt={};mus.forEach(m=>cnt[m]=0);let left=n,g=0;
+  while(left>0&&g<50){for(const m of mus){if(left<=0)break;if(m==="abs"&&cnt[m]>=1)continue;if(cnt[m]<EX[m].l.length){cnt[m]++;left--}}g++}
+  const out=[];mus.forEach(m=>{const l=[...EX[m].l.filter(isC),...EX[m].l.filter(e=>!isC(e))];l.slice(0,cnt[m]).forEach(e=>out.push({m,e}))});
+  return out;
+}
+const needCardio=o=>o.somato==="endo"||o.goal==="bajar";
+const cardioRes=o=>needCardio(o)&&o.min>=60?15:0;
+function cardioTxt(o){if(!needCardio(o))return "";return o.min>=60?(o.somato==="endo"?"Cardio al final: 20 min caminata inclinada o bici moderada.":"Cardio al final: 15 min caminata rápida."):"Haz 20–30 min de cardio suave en días libres (caminar, bici)."}
+const r25=x=>Math.round(x/2.5)*2.5;
+function tmOf(name){const h=hist(name).filter(w=>bestSet(w.sets).kg>0);if(!h.length)return 0;return h[h.length-1].best*0.9}
+function fixDays(o,n,P){if(o.days!==n)P.notes.unshift(`Este método está pensado para <b>${n} días</b> por semana, así que lo armé con ${n} (elegiste ${o.days}).`);return n}
+
+function genPlan(o){
+  const m=o.method||"auto";
+  if(m==="auto")return genAuto(o);
+  if(m==="hd")return genAuto(o,{hd:true});
+  const P={o,plan:[],notes:[],scheme:"",weekNote:"",days:o.days};
+  ({fst7:mFst7,evid:mEvid,y3t:mY3t,dc:mDc,gvt:mGvt,phul:mPhul,w531:m531,s5x5:m5x5,circ:mCirc,casa:mCasa})[m](o,P);
+  P.week=WEEK[P.days];
+  if(o.lvl==="pri"&&["dc","y3t","gvt","fst7"].includes(m))P.notes.unshift("⚠️ Este método es exigente para un principiante. Te recomiendo empezar con <b>5×5 de fuerza</b> o <b>Hipertrofia basada en evidencia</b> unos meses.");
+  if(o.somato==="ecto"&&["circ","gvt","y3t"].includes(m))P.notes.push("Ectomorfo: este método gasta muchas calorías. Come en superávit y no añadas cardio extra.");
+  if(o.somato==="endo"&&m!=="circ")P.notes.push("Endomorfo: añadí cardio y cuida el déficit calórico; la dieta hace la mayor parte.");
+  return P;
+}
+function gymDays(o,P,split,perEx,scheme,opts={}){
+  P.plan=split.map(([name,mus],i)=>{
+    const fin=opts.fin?opts.fin(mus,i):[];
+    const sel=pickEx(mus,nEx(o,perEx,fin.length*10+cardioRes(o),opts.cap));
+    const exs=[];
+    mus.forEach(mm=>{sel.filter(x=>x.m===mm).forEach(({m,e},j)=>exs.push(X(m,e.n,...scheme(e,m,j))));
+      if(fin.includes(mm))exs.push(X(mm,EX[mm].fst,"7 series","8–12 reps","30–45 s (estira y posa)",7,{fst:true}))});
+    return {name,exs,extra:cardioTxt(o),tag:fin.length?["fst","FST-7"]:METHODS[o.method].tag};
+  });
+}
+function mFst7(o,P){
+  gymDays(o,P,SPLITS[o.days],8,(e)=>isC(e)?["3–4 series","8–12 reps","90 s–2 min",4]:["3 series","10–12 reps","60–90 s",3],
+   {fin:(mus)=>{const main=o.lag&&mus.includes(o.lag)&&EX[o.lag].fst?o.lag:mus.find(x=>EX[x].fst);const f=[main];const sec=mus.find(x=>x!==main&&EX[x].fst);if(o.min>=75&&sec)f.push(sec);return f}});
+  P.scheme="Básicos 3–4 × 8–12 · aislados 3 × 10–12 · cierre FST-7: 7 × 8–12 con 30–45 s";
+  P.weekNote="FST-7 al final de cada grupo muscular principal en todas las sesiones.";
+}
+const EVID_SPLIT={2:SPLITS[2],3:[["Cuerpo completo A",["pecho","espalda","cuad","hombro","biceps"]],["Cuerpo completo B",["espalda","pecho","femoral","triceps","gemelo"]],["Cuerpo completo C",["cuad","pecho","espalda","hombro","abs"]]],4:SPLITS[4],5:[SPLITS[4][0],SPLITS[4][1],SPLITS[6][0],SPLITS[6][1],SPLITS[4][3]],6:SPLITS[6]};
+function mEvid(o,P){
+  const pri=o.lvl==="pri";
+  gymDays(o,P,EVID_SPLIT[o.days],8,(e,m)=>{const legs=["cuad","femoral","gemelo"].includes(m);
+    return isC(e)?[pri?"2–3 series":"3 series",legs?"8–12 reps (RIR 1–2)":"6–10 reps (RIR 1–2)","2–3 min",3]:[pri?"2 series":"3 series","10–15 reps (RIR 0–1)","60–90 s",pri?2:3]});
+  P.scheme="Básicos 3 × 6–10 dejando 1–2 reps en reserva · aislados 3 × 10–15 cerca del fallo · progresión doble";
+  P.weekNote="Cada músculo se trabaja ~2 veces por semana (10–20 series semanales).";
+}
+function mY3t(o,P){
+  gymDays(o,P,SPLITS[o.days],8,(e)=>isC(e)?["Sem 1: 3–4 series · Sem 2: 3 + 1 extra · Sem 3: 2–3 series","Sem 1: 6–10 · Sem 2: 8–12 (+1×15–20) · Sem 3: 20–30","Sem 1: 2–3 min · Sem 3: 30–60 s",3]:["Sem 1: 3 · Sem 2: 3 + drop set · Sem 3: superserie / serie gigante","Sem 1: 8–10 · Sem 2: 12–15 · Sem 3: 20–30","Sem 1: 90 s · Sem 3: 0–30 s",3]);
+  P.scheme="Ciclo de 3 semanas: S1 pesada (6–10), S2 mixta (8–15 + drop sets), S3 volumen extremo (20–30, superseries)";
+  P.weekNote="Repite los mismos días cada semana; lo que cambia es el rango de reps según la semana del ciclo.";
+}
+function mDc(o,P){
+  P.days=o.days>=3?fixDays(o,3,P):2;
+  const rp=["1 serie rest-pause (3 tramos)","7–10 + 15 respiraciones + al fallo + 15 respiraciones + al fallo (total 11–15)","estiramiento extremo 60 s",3];
+  const A=["Pecho, hombros, tríceps y espalda",[X("pecho","Press inclinado con mancuernas",...rp),X("hombro","Press militar en máquina o con mancuernas",...rp),X("triceps","Press francés con barra Z",...rp),X("espalda","Jalón al pecho con agarre cerrado supino",rp[0],"total 11–20",rp[2],3),X("espalda","Remo con barra o en máquina","1 serie recta pesada","10–12 reps","—",1)]];
+  const B=["Bíceps, pantorrillas, femorales y cuádriceps",[X("biceps","Curl con barra",...rp),X("gemelo","Elevación de talones en prensa","1 serie","10–12 reps (pausa 5 s abajo)","estiramiento extremo 60 s",1),X("femoral","Curl femoral acostado","1 serie rest-pause","15–25 total","estiramiento extremo 60 s",3),X("cuad","Sentadilla con barra","1 serie pesada + widowmaker","6–10 reps, luego 1×20 con menos peso","estiramiento extremo 60 s",2,{tag:["m","Widowmaker"]})]];
+  P.plan=(P.days===3?[A,B,A]:[A,B]).map(([name,exs])=>({name,exs,extra:cardioTxt(o),tag:METHODS.dc.tag}));
+  P.scheme="1 serie rest-pause por ejercicio · calentamiento progresivo antes · estiramiento extremo de 60 s después";
+  P.weekNote=P.days===3?"Alterna: semana 1 A-B-A, semana 2 B-A-B.":"Alterna A y B.";
+  if(o.lvl!=="ava")P.notes.unshift("DC Training fue diseñado para culturistas avanzados que ya no progresan con métodos normales.");
+}
+function mGvt(o,P){
+  P.days=o.days>=3?fixDays(o,3,P):2;
+  const T=["10 series","10 reps al ~60% 1RM","60–90 s (alterna A1/A2)",10], B=["3 series","10–12 reps","60 s",3];
+  const days3=[["Pecho y espalda",[X("pecho","Press inclinado con mancuernas",...T,{tag:["ss","A1"]}),X("espalda","Jalón al pecho con agarre cerrado supino",...T,{tag:["ss","A2"]}),X("pecho","Aperturas con mancuernas o pec deck",...B,{tag:["ss","B1"]}),X("espalda","Remo con mancuerna a una mano",...B,{tag:["ss","B2"]})]],
+   ["Piernas y abdomen",[X("cuad","Sentadilla con barra",...T,{tag:["ss","A1"]}),X("femoral","Curl femoral acostado",...T,{tag:["ss","A2"]}),X("gemelo","Elevación de talones de pie",...B,{tag:["ss","B1"]}),X("abs","Crunch en polea",...B,{tag:["ss","B2"]})]],
+   ["Brazos y hombros",[X("triceps","Fondos en paralelas o en banco",...T,{tag:["ss","A1"]}),X("biceps","Curl inclinado con mancuernas",...T,{tag:["ss","A2"]}),X("hombro","Elevaciones laterales con mancuernas",...B,{tag:["ss","B1"]}),X("hombro","Pájaros / reverse pec deck (deltoide posterior)",...B,{tag:["ss","B2"]})]]];
+  const days2=[["Torso",[days3[0][1][0],days3[0][1][1],days3[2][1][2],days3[0][1][3]]],["Piernas y brazos",[days3[1][1][0],days3[1][1][1],days3[2][1][0],days3[2][1][1]]]];
+  P.plan=(P.days===3?days3:days2).map(([name,exs])=>({name,exs:o.min<=45?exs.slice(0,2):exs,extra:cardioTxt(o),tag:METHODS.gvt.tag}));
+  P.scheme="A1/A2: 10×10 al ~60% de tu máximo, alternando · B1/B2: 3×10–12";
+  P.weekNote=P.days===3?"Ciclo de 5 días: entreno, entreno, descanso, entreno, descanso (aquí repartido en la semana).":"";
+  if(o.min<=45)P.notes.push("Con poco tiempo, haz solo el 10×10 (A1/A2): ya es suficiente volumen.");
+}
+function mPhul(o,P){
+  P.days=fixDays(o,4,P);
+  const F=["3–4 series","3–5 reps","3–5 min",4],A=["2–3 series","6–10 reps","2 min",3],H=["3–4 series","8–12 reps","60–90 s",3],H2=["3 series","10–15 reps","60 s",3];
+  const D=[["Torso fuerza",[X("pecho","Press de banca con barra",...F),X("espalda","Remo con barra o en máquina",...F),X("hombro","Press militar en máquina o con mancuernas",...A),X("espalda","Jalón al pecho con agarre cerrado supino",...A),X("biceps","Curl con barra",...A),X("triceps","Press francés con barra Z",...A)]],
+   ["Pierna fuerza",[X("cuad","Sentadilla con barra",...F),X("femoral","Peso muerto convencional",...F),X("cuad","Prensa de piernas",...H2),X("femoral","Curl femoral acostado",...A),X("gemelo","Elevación de talones de pie",...A)]],
+   ["Torso hipertrofia",[X("pecho","Press inclinado con mancuernas",...H),X("pecho","Cruce de poleas",...H),X("espalda","Remo sentado en polea baja",...H),X("espalda","Remo con mancuerna a una mano",...H),X("hombro","Elevaciones laterales con mancuernas",...H),X("biceps","Curl inclinado con mancuernas",...H),X("triceps","Extensión de tríceps en polea",...H)]],
+   ["Pierna hipertrofia",[X("cuad","Sentadilla búlgara / zancadas",...H),X("cuad","Extensión de cuádriceps",...H2),X("femoral","Curl femoral sentado",...H2),X("femoral","Peso muerto rumano",...H),X("gemelo","Elevación de talones en prensa",...H2)]]];
+  const n=nEx(o,7,cardioRes(o));
+  P.plan=D.map(([name,exs])=>({name,exs:exs.slice(0,Math.max(3,n)),extra:cardioTxt(o),tag:METHODS.phul.tag}));
+  P.scheme="Días de fuerza: básicos 3–5 reps (3–5 min de descanso) · días de hipertrofia: 8–15 reps (60–90 s)";
+  P.weekNote="Lun torso fuerza · Mar pierna fuerza · Jue torso hipertrofia · Vie pierna hipertrofia.";
+}
+const L531={"Press militar con barra":["hombro",[["espalda","Dominadas (asistidas si hace falta)"],["hombro","Face pull en polea"]]],
+ "Peso muerto convencional":["femoral",[["femoral","Curl femoral acostado"],["abs","Elevación de piernas colgado"]]],
+ "Press de banca con barra":["pecho",[["espalda","Remo con mancuerna a una mano"],["triceps","Extensión de tríceps en polea"]]],
+ "Sentadilla con barra":["cuad",[["femoral","Curl femoral sentado"],["abs","Crunch en polea"]]]};
+function w531note(lift){
+  const tm=tmOf(lift);
+  if(!tm)return "Anota aquí tu mejor serie (aunque sea una prueba) y calcularé tus pesos exactos: TM = 90% de tu 1RM estimado.";
+  const w=(p,r)=>p.map((x,i)=>`${r25(tm*x/100)}×${r[i]}`).join(", ");
+  return `TM ${r25(tm)} kg → S1: ${w([65,75,85],["5","5","5+"])} · S2: ${w([70,80,90],["3","3","3+"])} · S3: ${w([75,85,95],["5","3","1+"])} · S4 descarga: ${w([40,50,60],["5","5","5"])} · BBB 5×10: ${r25(tm*0.5)} kg`;
+}
+function m531(o,P){
+  const main=(lift,bbb)=>{const [m,acc]=L531[lift];const exs=[X(m,lift,"3 series (5/3/1)","según semana; última serie al máximo (+)","3–5 min",3,{note:w531note(lift)})];
+    if(bbb)exs.push(X(m,lift+" — BBB","5 series","10 reps al 50% TM","90 s",5,{tag:["m","BBB"]}));
+    return {exs,acc}};
+  let days;
+  if(o.days>=4){P.days=fixDays(o,4,P);days=[["Press militar","Press militar con barra"],["Peso muerto","Peso muerto convencional"],["Press de banca","Press de banca con barra"],["Sentadilla","Sentadilla con barra"]].map(([n,l])=>[n,[l]])}
+  else{P.days=o.days;const A=["Sentadilla + press de banca",["Sentadilla con barra","Press de banca con barra"]],B=["Peso muerto + press militar",["Peso muerto convencional","Press militar con barra"]];days=o.days===3?[A,B,A]:[A,B]}
+  P.plan=days.map(([name,lifts])=>{const bbb=lifts.length===1&&o.min>=60;let exs=[];const acc=[];lifts.forEach(l=>{const r=main(l,bbb);exs=exs.concat(r.exs);acc.push(...r.acc)});
+    const room=Math.max(1,Math.floor((o.min-5-cardioRes(o)-lifts.length*15-(bbb?15:0))/8));
+    acc.slice(0,room).forEach(([m,n])=>exs.push(X(m,n,"3–5 series","10–15 reps","60–90 s",3)));
+    return {name,exs,extra:cardioTxt(o),tag:METHODS.w531.tag}});
+  P.scheme="Básico principal con porcentajes del Training Max · Boring But Big 5×10 al 50% · 1–2 accesorios";
+  P.weekNote=o.days===3?"Alterna A/B: semana 1 A-B-A, semana 2 B-A-B. El ciclo completo dura 4 semanas.":"Ciclo de 4 semanas; luego sube el TM y repite.";
+  P.notes.push("Los pesos de cada semana se calculan solos con lo que anotes en la pestaña Progreso.");
+}
+function next5x5(name,inc,sets,reps){
+  const h=hist(name).filter(w=>bestSet(w.sets).kg>0);if(!h.length)return "Empieza ligero: con la barra (20 kg) o un peso que muevas fácil para 5 reps.";
+  const l=h[h.length-1],top=Math.max(...l.sets.map(s=>s.kg));const ok=l.sets.length>=sets&&l.sets.every(s=>s.reps>=reps);
+  return ok?`Última vez completaste ${sets}×${reps} con ${r1(top)} kg → hoy <b>${r1(top+inc)} kg</b>`:`Última vez no completaste todas las series con ${r1(top)} kg → hoy repite <b>${r1(top)} kg</b>`;
+}
+function m5x5(o,P){
+  P.days=o.days>=3?fixDays(o,3,P):2;
+  const s=(m,n,inc,sets=5)=>X(m,n,sets+" series",sets===1?"5 reps":"5 reps",sets===1?"—":"3 min (5 si fallaste)",sets,{note:next5x5(n,inc,sets,5)});
+  const A=["Entreno A",[s("cuad","Sentadilla con barra",2.5),s("pecho","Press de banca con barra",2.5),s("espalda","Remo con barra (Pendlay)",2.5)]];
+  const B=["Entreno B",[s("cuad","Sentadilla con barra",2.5),s("hombro","Press militar con barra",2.5),s("femoral","Peso muerto convencional",5,1)]];
+  const acc=o.min>=60?[X("espalda","Dominadas (asistidas si hace falta)","3 series","al máximo","2 min",3),X("triceps","Fondos en paralelas o en banco","3 series","8–12 reps","90 s",3)]:[];
+  P.plan=(P.days===3?[A,B,A]:[A,B]).map(([name,exs],i)=>({name,exs:exs.concat(i%2?acc.slice(1):acc.slice(0,1)),extra:cardioTxt(o),tag:METHODS.s5x5.tag}));
+  P.scheme="5 series de 5 reps con el mismo peso · +2.5 kg cada sesión (+5 kg peso muerto)";
+  P.weekNote=P.days===3?"Semana 1: A-B-A · semana 2: B-A-B.":"Alterna A y B.";
+}
+function mCirc(o,P){
+  const CA=[["cuad","Sentadilla goblet con mancuerna"],["pecho","Flexiones de pecho"],["espalda","Remo con mancuerna a una mano"],["cuad","Zancadas caminando"],["hombro","Press de hombro con mancuernas"],["femoral","Swing con kettlebell o mancuerna"],["abs","Mountain climbers"],["abs","Plancha"]];
+  const CB=[["femoral","Peso muerto rumano con mancuernas"],["pecho","Press inclinado con mancuernas"],["espalda","Jalón al pecho"],["cuad","Step-ups al banco"],["abs","Burpees"],["biceps","Curl + press con mancuernas"],["cuad","Sentadilla con salto"],["abs","Bicho muerto (dead bug)"]];
+  const hiit=o.min>=45;
+  P.plan=Array.from({length:o.days},(_,i)=>{const C=i%2?CB:CA;const nE=o.min<=30?6:8;const per=nE+2;const rounds=Math.max(2,Math.min(5,Math.floor((o.min-5-(hiit?12:0))/per)));
+    return {name:"Circuito "+(i%2?"B":"A"),exs:C.slice(0,nE).map(([m,n])=>X(m,n,rounds+" rondas","40 s trabajo / 20 s descanso","2 min entre rondas",rounds)),
+      extra:hiit?"Final HIIT: 8 × (30 s fuerte / 60 s suave) en bici, caminadora o saltando la cuerda.":"",tag:METHODS.circ.tag}});
+  P.scheme="Cada ejercicio 40 s, descanso 20 s, sin parar hasta terminar la ronda; 2 min entre rondas";
+  P.weekNote="Deja al menos 1 día de descanso entre circuitos si sientes mucha fatiga.";
+}
+function mCasa(o,P){
+  const E={flex:["pecho","Flexiones (rodillas → normales → pies elevados)"],dom:["espalda","Dominadas en barra o remo invertido bajo una mesa"],pike:["hombro","Flexiones pike (hombros)"],fon:["triceps","Fondos entre dos sillas"],curl:["biceps","Curl con mochila cargada"],sup:["espalda","Superman en el piso"],bul:["cuad","Sentadilla búlgara en silla"],sen:["cuad","Sentadilla lenta (3 s bajando)"],pue:["femoral","Puente de glúteo a una pierna"],nor:["femoral","Curl nórdico asistido o con toalla deslizante"],tal:["gemelo","Elevación de talones a una pierna en escalón"],pla:["abs","Plancha"]};
+  const mk=k=>{const [m,n]=E[k];const reps=k==="pla"?"30–60 s":["sen","tal"].includes(k)?"15–25 reps":["dom","nor","pike"].includes(k)?"5–12 reps":"8–15 reps";return X(m,n,"3–4 series",reps+" (fallo técnico)","60–90 s",3)};
+  const FA=["Cuerpo completo A",["flex","bul","dom","pue","pike","pla"]],FB=["Cuerpo completo B",["dom","sen","fon","nor","tal","sup"]],UA=["Torso",["flex","dom","pike","fon","curl","sup"]],LA=["Pierna y core",["bul","sen","pue","nor","tal","pla"]];
+  const days=o.days<=3?[FA,FB,FA].slice(0,o.days):Array.from({length:o.days},(_,i)=>i%2?LA:UA);
+  const n=nEx(o,8,cardioRes(o));
+  P.plan=days.map(([name,ks])=>({name,exs:ks.slice(0,Math.max(4,n)).map(mk),extra:cardioTxt(o),tag:METHODS.casa.tag}));
+  P.scheme="3–4 series por ejercicio al fallo técnico · 60–90 s de descanso · pasa a la versión más difícil cuando superes el rango";
+  P.weekNote="Solo necesitas el piso, dos sillas y una mochila. Una barra de dominadas de puerta es la mejor inversión.";
+}
+function recommend(o){
+  let r=[];
+  if(o.lvl==="pri"){r=["s5x5","evid"];if(o.goal==="bajar"||o.somato==="endo")r.push("circ")}
+  else{
+    if(o.somato==="ecto")r.push("hd","s5x5","w531");
+    if(o.somato==="meso")r.push("auto","phul","y3t");
+    if(o.somato==="endo")r.push("fst7","circ","evid");
+    if(o.lvl==="ava")r.unshift(o.somato==="endo"?"y3t":"dc");
+  }
+  if(o.min<=30)r.unshift(o.goal==="bajar"?"circ":"hd");
+  return [...new Set(r)].slice(0,3);
+}
+function readTrainForm(){return {somato:$("#tSomato").value,days:+$("#tDays").value,min:+$("#tMin").value,lvl:$("#tLvl").value,lag:$("#tLag").value,goal:$("#tGoal").value,method:$("#tMeth").value}}
+function renderMethUI(){
+  const o=readTrainForm(),M=METHODS[o.method],rec=recommend(o);
+  $("#methRec").innerHTML=`<div class="small mut" style="margin:8px 0 4px">Recomendados para ti:</div><div class="chips">${rec.map(k=>`<button type="button" class="chip ${k===o.method?"on":""}" data-meth="${k}">${esc(METHODS[k].n)}</button>`).join("")}</div>`;
+  $("#methDesc").innerHTML=`<b>${esc(M.n)}</b> <span class="mut">· ${esc(M.by)} · Nivel: ${esc(M.lvl)}</span><br>${esc(M.desc)}`;
+}
+function renderMethInfo(){
+  $("#methInfo").innerHTML=Object.entries(METHODS).filter(([k])=>k!=="auto").map(([k,M],i)=>`<details ${i===0?"open":""}><summary><span class="tag ${M.tag[0]}" style="margin:0 6px 0 0">${esc(M.tag[1])}</span>${esc(M.n)} — ${esc(M.by)}</summary>
+    <p class="small mut" style="margin:4px 0">${esc(M.desc)} <b>Nivel:</b> ${esc(M.lvl)}.</p><ul class="small">${M.how.map(h=>`<li>${h}</li>`).join("")}</ul></details>`).join("");
+}
+
 function renderPlan(P){
   if(!P){$("#trRes").innerHTML="";return}
   const somN={ecto:"Ectomorfo",meso:"Mesomorfo",endo:"Endomorfo"}[P.o.somato];
   const weekHtml=DN.map((d,i)=>{const k=P.week.indexOf(i);return `<div class="${k>=0?"t":""}">${d}<br>${k>=0?(k+1):"—"}</div>`}).join("");
   const G=S.goal;
-  $("#trRes").innerHTML=`<div class="card"><h2>${somN} · ${P.o.days} días · ${P.o.min} min</h2>
+  const M=METHODS[P.o.method||"auto"];
+  $("#trRes").innerHTML=`<div class="card"><div class="row between"><h2 style="margin:0">${esc(M.n)}</h2><span class="tag ${M.tag[0]}">${esc(M.tag[1])}</span></div>
+    <p class="small mut" style="margin:2px 0 8px">${esc(M.by)} · ${somN} · ${P.days} días · ${P.o.min} min</p>
     <div class="week">${weekHtml}</div>
-    <p class="small mut" style="margin:4px 0 8px">Los días sin número son descanso total o cardio suave. FST-7 en ${P.fstPerWeek} sesión(es) por semana.</p>
+    <p class="small mut" style="margin:4px 0 8px">Los días sin número son descanso total o cardio suave. ${P.weekNote||""}</p>
     ${P.notes.map(n=>`<div class="note small">${n}</div>`).join("")}
-    <div class="note small" style="background:rgba(90,169,255,.08);border-color:rgba(90,169,255,.3)"><b>Esquema base:</b> ${P.S_.sets} · ${P.S_.reps} · descanso ${P.S_.rest}. Cuando completes el máximo de reps con buena técnica, sube el peso 2.5–5%.</div>
+    <div class="note small" style="background:rgba(90,169,255,.08);border-color:rgba(90,169,255,.3)"><b>Esquema:</b> ${P.scheme}.</div>
     ${G?`<p class="small mut">Nutrición: tu meta es <b class="ac">${r0(G.kcal)} kcal</b> y <b class="pc">${r0(G.p)} g de proteína</b> al día.</p>`:`<p class="small mut"><a href="#calculadora" style="color:var(--acc)">Calcula tus calorías</a> para acompañar el plan.</p>`}
-  </div>`+P.plan.map((d,i)=>`<div class="card"><div class="row between"><h2 style="margin:0">Día ${i+1}: ${esc(d.name)}</h2>${d.hasFst?`<span class="tag fst">FST-7</span>`:`<span class="tag hd">HD</span>`}</div>
+  </div>`+P.plan.map((d,i)=>`<div class="card"><div class="row between"><h2 style="margin:0">Día ${i+1}: ${esc(d.name)}</h2><span class="tag ${d.tag[0]}">${esc(d.tag[1])}</span></div>
     <p class="small mut" style="margin:4px 0 6px">Calentamiento 5 min (movilidad + series ligeras del primer ejercicio).</p>
-    ${d.exs.map(e=>{const key=exKey(e);return `<div class="ex" data-key="${esc(key)}" data-m="${esc(e.m)}" data-ns="${e.fst?7:P.S_.sets.startsWith("2")||P.S_.sets.includes("2 series")?2:1}"><div class="exrow"><div class="grow"><div class="en">${esc(e.n)}${e.fst?`<span class="tag fst">FST-7</span>`:""}${e.ss?`<span class="tag ss">Superserie A1</span>`:""}${e.post?`<span class="tag ss">Superserie A2</span>`:""}</div>
-      <div class="es">${esc(e.m)} · ${esc(e.sets)} · ${esc(e.reps)} · ${e.ss?"":"descanso "}${esc(e.rest)}</div><div class="last">${lastTxt(key)}</div></div><button type="button" class="logbtn ${loggedToday(key)?"done":""}" data-log>${loggedToday(key)?"✓ Editar":"Anotar"}</button></div><div class="wfbox"></div></div>`}).join("")}
+    ${d.exs.map(e=>{const key=exKey(e);return `<div class="ex" data-key="${esc(key)}" data-m="${esc(e.m)}" data-ns="${e.ns||1}"><div class="exrow"><div class="grow"><div class="en">${esc(e.n)}${e.fst?`<span class="tag fst">FST-7</span>`:""}${e.ss?`<span class="tag ss">Superserie A1</span>`:""}${e.post?`<span class="tag ss">Superserie A2</span>`:""}${e.tag?`<span class="tag ${e.tag[0]}">${esc(e.tag[1])}</span>`:""}</div>
+      <div class="es">${esc(e.m)} · ${esc(e.sets)} · ${esc(e.reps)} · ${e.ss?"":"descanso "}${esc(e.rest)}</div>${e.note?`<div class="small" style="margin-top:3px;color:#9ccbff">${e.note}</div>`:""}<div class="last">${lastTxt(key)}</div></div><button type="button" class="logbtn ${loggedToday(key)?"done":""}" data-log>${loggedToday(key)?"✓ Editar":"Anotar"}</button></div><div class="wfbox"></div></div>`}).join("")}
     ${d.extra?`<p class="small" style="margin:8px 0 0">🏃 ${d.extra}</p>`:""}
   </div>`).join("")+`<div class="card"><h2>Reglas para progresar</h2><ul class="small">
     <li>Anota peso y reps de cada serie efectiva. Cada sesión intenta superar en 1 rep o un poco más de peso.</li>
-    <li>Si un ejercicio no mejora en 2 sesiones seguidas, añade un día extra de descanso antes de repetir ese entreno (principio de Mentzer).</li>
-    <li>Duerme 7–9 h. Sin recuperación, ni Heavy Duty ni FST-7 funcionan.</li>
+    <li>Si un ejercicio no mejora en 2 sesiones seguidas, añade un día extra de descanso o revisa sueño y calorías.</li>
+    <li>Duerme 7–9 h. Sin recuperación ningún método funciona.</li>
     <li>Cada 8–10 semanas toma una semana más suave (descarga).</li></ul></div>`;
 }
 $("#trForm").addEventListener("submit",e=>{
   e.preventDefault();
-  const o={somato:$("#tSomato").value,days:+$("#tDays").value,min:+$("#tMin").value,lvl:$("#tLvl").value,lag:$("#tLag").value,goal:$("#tGoal").value};
+  const o=readTrainForm();
   S.train=o;save();renderPlan(genPlan(o));$("#trRes").scrollIntoView({behavior:"smooth",block:"start"});
 });
 // mini test somatotipo
@@ -946,7 +1154,7 @@ function renderQuiz(){
   $("#quiz").innerHTML=`<div class="small mut">Pregunta ${i+1} de 3</div><b>${QZ[i][0]}</b>`+QZ[i][1].map((t,j)=>`<button type="button" class="full sm" data-qa="${j}" style="margin-top:6px;text-align:left">${t}</button>`).join("");
   $$("#quiz [data-qa]").forEach(b=>b.onclick=()=>{qzA.push(+b.dataset.qa);renderQuiz()});
 }
-function fillTrain(){const o=S.train;if(!o)return;$("#tSomato").value=o.somato;$("#tDays").value=String(o.days);$("#tMin").value=String(o.min);$("#tLvl").value=o.lvl;$("#tLag").value=o.lag;$("#tGoal").value=o.goal;renderPlan(genPlan(o))}
+function fillTrain(){const o=S.train;if(!o)return;$("#tSomato").value=o.somato;$("#tDays").value=String(o.days);$("#tMin").value=String(o.min);$("#tLvl").value=o.lvl;$("#tLag").value=o.lag;$("#tGoal").value=o.goal;$("#tMeth").value=o.method||"auto";renderMethUI();renderPlan(genPlan(o))}
 
 /* ================= REGISTRO DE FUERZA ================= */
 const exKey=e=>e.n+(e.fst?" · FST-7":"");
@@ -1057,6 +1265,7 @@ function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.sl
 window.addEventListener("hashchange",route);
 function renderAll(){renderLog();renderMenus()}
 try{if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{})}catch(e){}
+renderMethInfo();$("#trForm").addEventListener("change",renderMethUI);$("#methRec").addEventListener("click",e=>{const b=e.target.closest("[data-meth]");if(b){$("#tMeth").value=b.dataset.meth;renderMethUI()}});renderMethUI();
 setGoalSeg("bajar");fillCalc();fillTrain();renderAll();route();
 </script>
 </body>
