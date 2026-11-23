@@ -153,7 +153,7 @@ li{margin:3px 0}
 <header>
   <div class="logo">N</div>
   <h1>NutriFuerza EC</h1>
-  <div class="sub" id="hdrsub"></div>
+  <div class="sub"><span id="hdrsub"></span> <span id="cloudDot"></span></div>
 </header>
 
 <main>
@@ -187,8 +187,12 @@ li{margin:3px 0}
     <div class="water" id="water" style="margin-top:8px"></div>
   </div>
   <div class="card">
-    <h2>Respaldo de datos</h2>
-    <p class="small mut" style="margin-top:0">Tus datos se guardan solo en este navegador. Copia un respaldo de vez en cuando y pégalo aquí para restaurarlo en otro dispositivo.</p>
+    <h2>Guardar en la nube</h2>
+    <div id="cloudBox"></div>
+  </div>
+  <div class="card">
+    <h2>Respaldo manual</h2>
+    <p class="small mut" style="margin-top:0">Copia de seguridad extra: copia el texto y guárdalo en tus Notas; pégalo aquí para restaurar.</p>
     <div class="row">
       <button class="sm" id="bkCopy">Copiar respaldo</button>
       <button class="sm" id="bkShow">Restaurar…</button>
@@ -400,6 +404,7 @@ li{margin:3px 0}
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="firebase-config.js"></script>
 <script>
 "use strict";
 /* ================= BASE DE ALIMENTOS =================
@@ -535,7 +540,8 @@ const MEALS = [["des","Desayuno"],["mm","Media mañana"],["alm","Almuerzo"],["mt
 const KEY="nutrifuerza_v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
 let S = Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[]}, load());
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){cloudTrack();saveLocal()}
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1342,6 +1348,138 @@ $("#pgList").addEventListener("click",e=>{
   const p=e.target.closest("[data-pk]");if(p){pgOpen=pgOpen===p.dataset.pk?null:p.dataset.pk;renderProgress()}
 });
 
+/* ================= NUBE (Firebase) =================
+   Los datos se dividen en "trozos": main (metas, perfil, entrenos, fuerza, agua, alimentos propios)
+   y log_AAAA-MM (comidas de cada mes). Cada trozo guarda su hora de cambio (S.ts) y gana el más nuevo. */
+const FB_V="10.12.2";
+const Cloud={on:false,user:null,fs:null,auth:null,base:null,dirty:new Set(),timer:null,unsub:null,status:"",last:0,busy:false};
+function chunksOf(st){
+  const c={main:JSON.stringify({custom:st.custom||[],goal:st.goal||null,profile:st.profile||null,train:st.train||null,wlog:st.wlog||[],water:st.water||{}})};
+  const months={};for(const d in st.log||{}){if(!st.log[d]||!st.log[d].length)continue;const m="log_"+d.slice(0,7);(months[m]=months[m]||{})[d]=st.log[d]}
+  for(const m in months)c[m]=JSON.stringify(months[m]);
+  return c;
+}
+function cloudBaseline(){Cloud.base=chunksOf(S)}
+function cloudTrack(){
+  if(!Cloud.base)return;
+  const cur=chunksOf(S),now=Date.now();S.ts=S.ts||{};
+  for(const k of new Set([...Object.keys(cur),...Object.keys(Cloud.base)])){
+    if(cur[k]!==Cloud.base[k]){S.ts[k]=now;Cloud.dirty.add(k)}
+  }
+  Cloud.base=cur;
+  if(Cloud.user&&Cloud.dirty.size){clearTimeout(Cloud.timer);Cloud.timer=setTimeout(cloudPush,1200);setCloudStatus("saving")}
+}
+function applyChunk(k,json){
+  const v=JSON.parse(json);
+  if(k==="main"){Object.assign(S,{custom:v.custom||[],goal:v.goal||null,profile:v.profile||null,train:v.train||null,wlog:v.wlog||[],water:v.water||{}});return}
+  const pre=k.slice(4);
+  for(const d of Object.keys(S.log))if(d.startsWith(pre))delete S.log[d];
+  Object.assign(S.log,v);
+}
+function chunkRef(k){return Cloud.fs.collection("users").doc(Cloud.user.uid).collection("chunks").doc(k)}
+async function cloudPush(){
+  if(!Cloud.user||Cloud.busy)return;
+  if(!navigator.onLine){setCloudStatus("offline");return}
+  Cloud.busy=true;const cur=chunksOf(S);
+  try{
+    for(const k of [...Cloud.dirty]){
+      if(cur[k]===undefined){await chunkRef(k).set({ts:S.ts[k]||Date.now(),json:"{}"})}
+      else await chunkRef(k).set({ts:S.ts[k]||Date.now(),json:cur[k]});
+      Cloud.dirty.delete(k);
+    }
+    Cloud.last=Date.now();setCloudStatus("ok");
+  }catch(e){console.warn("nube",e);setCloudStatus(navigator.onLine?"error":"offline")}
+  Cloud.busy=false;
+  if(Cloud.dirty.size){clearTimeout(Cloud.timer);Cloud.timer=setTimeout(cloudPush,5000)}
+  saveLocal();
+}
+function mergeFirst(remote){
+  // Primera vez que este dispositivo se une a la cuenta: junta lo local con lo de la nube sin perder nada.
+  const R={};for(const k in remote)R[k]=JSON.parse(remote[k].json);
+  if(R.main){const m=R.main;
+    const byId=(a,b,key)=>{const seen=new Set(a.map(x=>x[key]));return a.concat(b.filter(x=>!seen.has(x[key])))};
+    S.custom=byId(m.custom||[],S.custom||[],"n");S.wlog=byId(m.wlog||[],S.wlog||[],"id");
+    S.goal=m.goal||S.goal;S.profile=m.profile||S.profile;S.train=m.train||S.train;
+    S.water=Object.assign({},S.water||{},m.water||{});}
+  for(const k in R){if(!k.startsWith("log_"))continue;for(const d in R[k]){const loc=S.log[d]||[];const ids=new Set(R[k][d].map(e=>e.id));S.log[d]=R[k][d].concat(loc.filter(e=>!ids.has(e.id)))}}
+  const now=Date.now();S.ts={};for(const k in chunksOf(S)){S.ts[k]=now;Cloud.dirty.add(k)}
+}
+async function cloudStart(){
+  setCloudStatus("sync");
+  try{
+    const snap=await Cloud.fs.collection("users").doc(Cloud.user.uid).collection("chunks").get();
+    const remote={};snap.forEach(d=>{remote[d.id]=d.data()});
+    S.ts=S.ts||{};
+    if(S.cloudUid!==Cloud.user.uid){mergeFirst(remote);S.cloudUid=Cloud.user.uid}
+    else{
+      const local=chunksOf(S);
+      for(const k of new Set([...Object.keys(local),...Object.keys(remote)])){
+        const rt=remote[k]?remote[k].ts:0,lt=S.ts[k]||0;
+        if(rt>lt){applyChunk(k,remote[k].json);S.ts[k]=rt}
+        else if(lt>rt||(!remote[k]&&local[k]))Cloud.dirty.add(k);
+      }
+    }
+    cloudBaseline();saveLocal();renderAll();if(location.hash==="#progreso")renderProgress();
+    await cloudPush();
+    if(Cloud.unsub)Cloud.unsub();
+    Cloud.unsub=Cloud.fs.collection("users").doc(Cloud.user.uid).collection("chunks").onSnapshot(qs=>{
+      if(qs.metadata&&qs.metadata.hasPendingWrites)return;
+      let changed=false;
+      qs.docChanges().forEach(ch=>{if(ch.type==="removed")return;const d=ch.doc.data(),k=ch.doc.id;
+        if((d.ts||0)>(S.ts[k]||0)&&!Cloud.dirty.has(k)){applyChunk(k,d.json);S.ts[k]=d.ts;changed=true}});
+      if(changed){cloudBaseline();saveLocal();renderAll();if(location.hash==="#progreso")renderProgress();if(location.hash==="#entreno"&&S.train)fillTrain();toast("☁️ Datos actualizados desde otro dispositivo")}
+    },e=>console.warn("nube escucha",e));
+    setCloudStatus("ok");
+  }catch(e){console.warn("nube inicio",e);setCloudStatus(navigator.onLine?"error":"offline")}
+}
+function loadScript(src){return new Promise((ok,ko)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
+async function cloudInit(){
+  const cfg=window.FIREBASE_CONFIG;
+  if(!cfg||!cfg.apiKey){setCloudStatus("noconfig");return}
+  try{
+    for(const m of ["app","auth","firestore"])await loadScript(`https://www.gstatic.com/firebasejs/${FB_V}/firebase-${m}-compat.js`);
+    firebase.initializeApp(cfg);
+    Cloud.auth=firebase.auth();Cloud.fs=firebase.firestore();
+    try{Cloud.fs.settings({experimentalAutoDetectLongPolling:true,merge:true})}catch(e){}
+    Cloud.on=true;setCloudStatus("out");
+    Cloud.auth.onAuthStateChanged(u=>{Cloud.user=u;
+      if(u)cloudStart();else{if(Cloud.unsub){Cloud.unsub();Cloud.unsub=null}setCloudStatus("out")}});
+    window.addEventListener("online",()=>{if(Cloud.user){Cloud.dirty.size?cloudPush():setCloudStatus("ok")}});
+    window.addEventListener("offline",()=>{if(Cloud.user)setCloudStatus("offline")});
+    document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&Cloud.dirty.size)cloudPush()});
+  }catch(e){console.warn("nube carga",e);setCloudStatus("loadfail")}
+}
+const AUTH_ERR={"auth/invalid-email":"Ese correo no es válido.","auth/user-not-found":"No existe una cuenta con ese correo. Toca “Crear cuenta”.","auth/wrong-password":"Contraseña incorrecta.","auth/invalid-credential":"Correo o contraseña incorrectos.","auth/invalid-login-credentials":"Correo o contraseña incorrectos.","auth/email-already-in-use":"Ya existe una cuenta con ese correo. Toca “Entrar”.","auth/weak-password":"La contraseña debe tener al menos 6 caracteres.","auth/network-request-failed":"Sin conexión a internet.","auth/too-many-requests":"Demasiados intentos. Espera unos minutos.","auth/missing-password":"Escribe tu contraseña."};
+const authMsg=e=>AUTH_ERR[e&&e.code]||("No se pudo: "+((e&&e.message)||"error"));
+function setCloudStatus(s){Cloud.status=s;renderCloud()}
+function renderCloud(){
+  const box=$("#cloudBox");if(!box)return;
+  const s=Cloud.status,u=Cloud.user;
+  const ST={noconfig:["⚪","La nube todavía no está activada en esta versión de la app. Tus datos se guardan en este teléfono."],loadfail:["⚠️","No pude conectar con la nube (¿sin internet?). Tus datos siguen guardados en este teléfono."],
+    out:["⚪","Inicia sesión para guardar todo en la nube y verlo en cualquier dispositivo."],sync:["🔄","Sincronizando…"],saving:["🔄","Guardando en la nube…"],
+    ok:["☁️","Todo guardado en la nube"+(Cloud.last?" · "+new Date(Cloud.last).toLocaleTimeString("es-EC",{hour:"2-digit",minute:"2-digit"}):"")],
+    offline:["📴","Sin internet: se guarda en el teléfono y se sube a la nube al reconectar."],error:["⚠️","Error al guardar en la nube; lo reintentaré. Tus datos están a salvo en el teléfono."]}[s]||["⚪",""];
+  $("#cloudDot").textContent=u&&Cloud.on?(s==="ok"?"☁️":s==="offline"?"📴":"🔄"):"";
+  let html=`<div class="row" style="align-items:flex-start"><span style="font-size:20px">${ST[0]}</span><div class="small" style="flex:1">${ST[1]}${u?`<br><span class="mut">Cuenta: ${esc(u.email||"")}</span>`:""}</div></div>`;
+  if(Cloud.on&&!u)html+=`<form id="authForm" style="margin-top:10px"><input id="auEmail" type="email" autocomplete="email" placeholder="Correo" style="margin-bottom:8px"><input id="auPass" type="password" autocomplete="current-password" placeholder="Contraseña (mínimo 6 caracteres)">
+    <div class="row" style="margin-top:8px"><button class="pri sm" type="submit" data-au="in">Entrar</button><button class="sm" type="button" data-au="up">Crear cuenta</button><button class="sm ghost" type="button" data-au="reset" style="margin-left:auto">Olvidé mi contraseña</button></div><div id="auMsg" class="small wc" style="margin-top:6px"></div></form>`;
+  if(u)html+=`<div class="row" style="margin-top:10px"><button class="sm" data-au="sync">Sincronizar ahora</button><button class="sm ghost" data-au="out" style="margin-left:auto">Cerrar sesión</button></div>`;
+  box.innerHTML=html;
+}
+$("#cloudBox").addEventListener("submit",e=>{e.preventDefault();authDo("in")});
+$("#cloudBox").addEventListener("click",e=>{const b=e.target.closest("[data-au]");if(!b||b.type==="submit")return;e.preventDefault();authDo(b.dataset.au)});
+async function authDo(a){
+  const msg=t=>{const m=$("#auMsg");if(m)m.textContent=t};
+  const em=($("#auEmail")||{}).value,pw=($("#auPass")||{}).value;
+  try{
+    if(a==="in"){msg("Entrando…");await Cloud.auth.signInWithEmailAndPassword((em||"").trim(),pw||"");toast("Sesión iniciada")}
+    else if(a==="up"){msg("Creando cuenta…");await Cloud.auth.createUserWithEmailAndPassword((em||"").trim(),pw||"");toast("Cuenta creada: tus datos se guardan en la nube")}
+    else if(a==="reset"){if(!em)return msg("Escribe tu correo arriba y vuelve a tocar “Olvidé mi contraseña”.");await Cloud.auth.sendPasswordResetEmail(em.trim());msg("Te envié un correo para cambiar tu contraseña (revisa también spam).")}
+    else if(a==="out"){if(Cloud.dirty.size)await cloudPush();await Cloud.auth.signOut();toast("Sesión cerrada")}
+    else if(a==="sync"){await cloudStart();toast("Sincronizado")}
+  }catch(e){msg(authMsg(e))}
+}
+
 /* ================= NAVEGACIÓN ================= */
 const VIEWS=["registro","menus","calculadora","entreno","progreso"];
 function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"registro";
@@ -1354,6 +1492,7 @@ renderMethInfo();setTrSex(S.profile&&S.profile.sex==="f"?"f":"m");$("#trForm").a
 $("#tSexSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){setTrSex(b.dataset.v);renderMethUI()}});
 $("#tLagChips").addEventListener("click",e=>{const b=e.target.closest("[data-lag]");if(!b)return;const k=b.dataset.lag;if(!k)lagSel=[];else if(lagSel.includes(k))lagSel=lagSel.filter(x=>x!==k);else{lagSel.push(k);if(lagSel.length>2)lagSel.shift()}renderLagChips();renderMethUI()});$("#methRec").addEventListener("click",e=>{const b=e.target.closest("[data-meth]");if(b){$("#tMeth").value=b.dataset.meth;renderMethUI()}});renderMethUI();
 setGoalSeg("bajar");fillCalc();fillTrain();renderAll();route();
+cloudBaseline();renderCloud();cloudInit();
 </script>
 </body>
 </html>
