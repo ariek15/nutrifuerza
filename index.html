@@ -125,6 +125,18 @@ li{margin:3px 0}
 .mi{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .mi:last-child{border-bottom:0}
 .hidden{display:none!important}
+.figbtn{flex:0 0 auto;width:66px;height:48px;padding:2px;background:#111113;border:1px solid var(--line);border-radius:10px}
+.figbtn svg{width:100%;height:100%;display:block}
+.bd{stroke:#e4e4e7;stroke-width:6;stroke-linecap:round}.hd{fill:#e4e4e7}
+.eq{fill:var(--acc)}.eqb{stroke:var(--acc);stroke-width:5;stroke-linecap:round}.eqp{fill:#52525b}
+.pr{fill:#2a2a2e}.pl,.pb{stroke:#3f3f46;stroke-width:4;stroke-linecap:round}.fl{stroke:#2a2a2e;stroke-width:2}.cb{stroke:#71717a;stroke-width:1.5;stroke-dasharray:3 3}
+.how{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}
+.howfig svg.big{width:100%;max-width:270px;display:block;margin:0 auto 8px;background:#111113;border-radius:12px}
+.how ol{margin:4px 0 8px;padding-left:20px}
+.vid{display:inline-block;margin-top:4px;padding:8px 12px;border-radius:10px;background:rgba(230,57,70,.12);border:1px solid rgba(230,57,70,.4);color:#ff8a92;text-decoration:none;font-size:13.5px;font-weight:600}
+.sumchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.sumchips span{font-size:12.5px;padding:5px 10px;border-radius:99px;background:var(--card2);border:1px solid var(--line)}
+.sumchips span.on{border-color:var(--acc2);color:#ff8a92}
 .gate{position:fixed;inset:0;z-index:100;background:radial-gradient(120% 80% at 50% -10%,#3a0a0e 0%,#0a0a0b 60%);display:flex;align-items:center;justify-content:center;padding:calc(24px + var(--safe-t)) 22px calc(24px + var(--safe-b));overflow-y:auto}
 .gbox{width:100%;max-width:380px}
 .glogo{width:84px;height:84px;border-radius:24px;margin:0 auto 14px;background:linear-gradient(135deg,#ff4d5a,#7a0c12);display:grid;place-items:center;font-weight:800;font-size:44px;color:#fff;box-shadow:0 10px 40px rgba(230,57,70,.35)}
@@ -313,7 +325,8 @@ li{margin:3px 0}
 <section class="view" id="v-entreno">
   <div class="card">
     <h2>Tu plan de entrenamiento</h2>
-    <p class="small mut" style="margin-top:0">Elige entre 11 métodos (Heavy Duty, FST-7, 5/3/1, 5×5, PHUL, Y3T, DC, 10×10, hipertrofia basada en evidencia, circuitos o calistenia en casa) o deja que la app te recomiende según tu cuerpo, nivel y tiempo.</p>
+    <div id="trSum" class="hidden"></div>
+    <p class="small mut" id="trIntro" style="margin-top:0">Elige entre 11 métodos (Heavy Duty, FST-7, 5/3/1, 5×5, PHUL, Y3T, DC, 10×10, hipertrofia basada en evidencia, circuitos o calistenia en casa) o deja que la app te recomiende según tu cuerpo, nivel y tiempo.</p>
     <form id="trForm">
       <label>Sexo</label>
       <div class="seg" id="tSexSeg" style="margin-bottom:10px"><button type="button" data-v="m" class="on">Hombre</button><button type="button" data-v="f">Mujer</button></div>
@@ -913,7 +926,7 @@ function genAuto(o,ov={}){
     // contar por músculo (round-robin)
     const cnt={};mus.forEach(m=>cnt[m]=0);let left=n,guard=0;
     while(left>0&&guard<50){for(const m of mus){if(left<=0)break;if(m==="abs"&&cnt[m]>=1)continue;if(cnt[m]<EX[m].l.length){cnt[m]++;left--}}guard++}
-    const fstMus=hasFst?(lag&&mus.includes(lag)?lag:mus.find(m=>EX[m].fst)):null;
+    const L2=(o.lags||[]).find(x=>mus.includes(x)&&EX[x]&&EX[x].fst);const fstMus=hasFst?(L2||mus.find(m=>EX[m].fst)):null;
     const exs=[];
     mus.forEach(m=>{
       let list=EX[m].l.slice(0,cnt[m]);
@@ -1214,6 +1227,125 @@ let lagSel=[],trSex="m";
 const LAG_OPTS=[["gluteo","Glúteos"],["pecho","Pecho"],["espalda","Espalda"],["hombro","Hombros"],["biceps","Bíceps"],["triceps","Tríceps"],["cuad","Cuádriceps"],["femoral","Femorales"],["gemelo","Pantorrillas"],["abs","Abdomen"]];
 function renderLagChips(){$("#tLagChips").innerHTML=`<button type="button" class="chip ${lagSel.length?"":"on"}" data-lag="">Ninguno</button>`+LAG_OPTS.map(([k,n])=>`<button type="button" class="chip ${lagSel.includes(k)?"on":""}" data-lag="${k}">${n}${trSex==="f"&&k==="gluteo"&&!lagSel.includes(k)?" ⭐":""}</button>`).join("")}
 function setTrSex(v){trSex=v;$$("#tSexSeg button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));renderLagChips()}
+/* ================= ILUSTRACIONES DE EJERCICIOS =================
+   Figuras propias en SVG: cada patrón tiene una pose inicial (a) y final (b) y se anima entre ambas. */
+const SK_SIDE=[["N","P"],["N","E"],["E","W"],["P","K"],["K","F"],["P","K2"],["K2","F2"],["F","T"]];
+const SK_FRONT=[["N","P"],["N","LE"],["LE","LW"],["N","RE"],["RE","RW"],["P","LK"],["LK","LF"],["P","RK"],["RK","RF"]];
+const BENCH='<rect x="26" y="93" width="120" height="6" rx="2" class="pr"/><line x1="38" y1="99" x2="38" y2="132" class="pl"/><line x1="134" y1="99" x2="134" y2="132" class="pl"/>';
+const SEAT='<rect x="78" y="96" width="44" height="6" rx="2" class="pr"/><line x1="100" y1="102" x2="100" y2="132" class="pl"/>';
+const FLOOR='<line x1="4" y1="132" x2="196" y2="132" class="fl"/>';
+const PAT={
+ press:{n:"Press en banco",props:BENCH,eq:[["bar","W"]],a:"H:38,84 N:50,88 P:104,90 K:130,92 F:134,131 E:50,64 W:50,42",b:"E:34,98 W:48,78",
+  tips:["Escápulas juntas y hacia abajo, pies firmes en el piso.","Baja controlado hasta rozar el pecho (o un poco antes con mancuernas).","Codos a unos 45–60° del cuerpo, no abiertos en cruz.","Empuja hacia arriba sin bloquear de golpe los codos."],err:"Rebotar la barra en el pecho o despegar la cadera del banco."},
+ incline:{n:"Press inclinado",props:'<line x1="72" y1="102" x2="40" y2="50" class="pb"/><line x1="64" y1="104" x2="114" y2="104" class="pb"/><line x1="90" y1="104" x2="90" y2="132" class="pl"/>',eq:[["db","W"]],a:"H:42,50 N:48,62 P:72,98 K:100,96 F:104,131 E:56,40 W:62,18",b:"E:34,72 W:46,52",
+  tips:["Banco a 30–45°: más inclinado trabaja más hombro que pecho.","Baja las mancuernas a los lados del pecho alto.","Codos ligeramente por debajo de la línea de los hombros.","Sube juntando un poco las mancuernas arriba."],err:"Arquear demasiado la espalda baja para mover más peso."},
+ militar:{n:"Press de hombros",props:SEAT,eq:[["db","W"]],a:"H:98,40 N:98,52 P:98,93 K:124,93 F:126,131 E:104,30 W:100,8",b:"E:116,58 W:110,38",
+  tips:["Espalda apoyada y abdomen firme.","Baja hasta que las mancuernas queden a la altura de las orejas.","Empuja hacia arriba y un poco hacia adentro.","No bloquees los codos de golpe arriba."],err:"Echar la cabeza y la espalda hacia atrás para ayudarte."},
+ fondos:{n:"Fondos",props:'<line x1="76" y1="82" x2="132" y2="82" class="pb"/><line x1="128" y1="82" x2="128" y2="132" class="pl"/>',a:"H:100,30 N:100,42 P:100,84 K:96,106 F:108,118 E:100,62 W:100,82",b:"H:102,54 N:100,66 P:98,106 K:94,124 F:106,130 E:84,74",
+  tips:["Para pecho inclina el torso hacia adelante; para tríceps, mantente vertical.","Baja hasta que el brazo quede paralelo al piso.","Hombros lejos de las orejas en todo momento.","Sube empujando sin bloquear del todo."],err:"Bajar demasiado y forzar los hombros."},
+ apertura:{n:"Aperturas / cruce",front:1,cable:[["LW",16,14],["RW",184,14]],a:"H:100,22 N:100,34 P:100,74 LK:92,102 LF:90,130 RK:108,102 RF:110,130 LE:74,40 LW:50,44 RE:126,40 RW:150,44",b:"LE:82,60 LW:96,74 RE:118,60 RW:104,74",
+  tips:["Codos ligeramente flexionados y fijos todo el recorrido.","Abre hasta sentir estiramiento en el pecho, sin dolor en el hombro.","Junta las manos apretando el pecho 1 segundo.","Movimiento como abrazar un árbol grande."],err:"Doblar y estirar los codos: lo conviertes en un press."},
+ lateral:{n:"Elevaciones laterales",front:1,eq:[["db","LW"],["db","RW"]],a:"H:100,22 N:100,34 P:100,74 LK:92,102 LF:90,130 RK:108,102 RF:110,130 LE:90,56 LW:88,76 RE:110,56 RW:112,76",b:"LE:78,40 LW:58,40 RE:122,40 RW:142,40",
+  tips:["Sube los brazos hacia los lados hasta la altura de los hombros.","Codos un poco flexionados y por encima de las manos.","Baja lento, en 2–3 segundos.","Usa poco peso: el deltoide lateral es pequeño."],err:"Balancear el cuerpo o subir los hombros hacia las orejas."},
+ pajaros:{n:"Pájaros (deltoide posterior)",front:1,eq:[["db","LW"],["db","RW"]],a:"H:100,48 N:100,55 P:100,72 LK:92,100 LF:90,130 RK:108,100 RF:110,130 LE:94,74 LW:92,94 RE:106,74 RW:108,94",b:"LE:78,62 LW:58,66 RE:122,62 RW:142,66",
+  tips:["Inclina el torso casi paralelo al piso con espalda recta.","Abre los brazos hacia los lados, no hacia atrás.","Piensa en llevar las manos lejos, no en juntar escápulas.","Peso ligero y controlado."],err:"Usar impulso con la espalda."},
+ facepull:{n:"Face pull",props:'<rect x="4" y="8" width="12" height="124" rx="2" class="pr"/>',cable:[["W",16,38]],a:"H:110,22 N:110,34 P:110,74 K:108,102 F:110,130 E:88,40 W:66,40",b:"E:124,36 W:104,26",
+  tips:["Polea a la altura de la cara, agarre con cuerda.","Jala hacia la frente separando las manos.","Codos altos, a la altura de los hombros.","Aprieta atrás 1 segundo."],err:"Jalar hacia el pecho con los codos abajo."},
+ jalon:{n:"Jalón al pecho",front:1,bar:["LW","RW"],props:'<rect x="76" y="100" width="48" height="5" rx="2" class="pr"/>',a:"H:100,46 N:100,58 P:100,98 LK:90,104 LF:90,132 RK:110,104 RF:110,132 LE:80,36 LW:70,14 RE:120,36 RW:130,14",b:"LE:78,74 LW:76,52 RE:122,74 RW:124,52",
+  tips:["Pecho arriba y ligera inclinación atrás.","Lleva la barra al pecho alto llevando los codos hacia abajo.","Piensa en meter los codos en los bolsillos.","Sube controlado hasta estirar la espalda."],err:"Jalar con los brazos y balancearte hacia atrás."},
+ dominadas:{n:"Dominadas",front:1,props:'<line x1="46" y1="10" x2="154" y2="10" class="pb"/>',a:"H:100,40 N:100,52 P:100,92 LK:96,114 LF:96,134 RK:104,114 RF:104,134 LE:82,32 LW:80,10 RE:118,32 RW:120,10",b:"H:100,8 N:100,22 P:100,64 LK:96,88 LF:96,108 RK:104,88 RF:104,108 LE:74,28 RE:126,28",
+  tips:["Empieza colgado con los brazos estirados.","Baja los hombros y luego jala hasta pasar la barbilla.","Baja lento hasta estirar los brazos.","Si no puedes aún, usa banda elástica o máquina asistida."],err:"Hacer medias repeticiones o balancearte."},
+ remo:{n:"Remo inclinado",eq:[["bar","W"]],a:"H:140,50 N:128,56 P:88,70 K:92,100 F:90,130 E:128,78 W:128,100",b:"E:108,56 W:116,76",
+  tips:["Bisagra de cadera: torso a unos 45°, espalda recta.","Jala hacia el ombligo llevando los codos atrás.","Aprieta la espalda arriba 1 segundo.","Rodillas un poco flexionadas."],err:"Redondear la espalda baja o levantarte con cada repetición."},
+ remo_polea:{n:"Remo en polea",props:'<line x1="52" y1="90" x2="52" y2="120" class="pb"/><line x1="100" y1="104" x2="136" y2="104" class="pb"/>',cable:[["W",14,82]],a:"H:108,46 N:110,58 P:112,100 K:84,92 F:58,104 E:90,72 W:68,80",b:"E:128,72 W:108,80",
+  tips:["Espalda recta y pecho arriba, rodillas un poco dobladas.","Jala hacia el abdomen llevando los codos atrás.","Junta las escápulas al final.","No te balancees hacia atrás."],err:"Usar el impulso del torso en cada repetición."},
+ pullover:{n:"Pullover",props:BENCH,eq:[["db","W"]],a:"H:38,84 N:50,88 P:104,90 K:130,92 F:134,131 E:28,76 W:8,70",b:"E:50,64 W:52,42",
+  tips:["Brazos casi estirados con codos un poco flexionados.","Baja por detrás de la cabeza hasta sentir estiramiento.","Sube en arco hasta encima del pecho.","Mantén la cadera abajo."],err:"Doblar mucho los codos: deja de trabajar la espalda."},
+ curl:{n:"Curl de bíceps",eq:[["db","W"]],a:"H:100,22 N:100,34 P:100,74 K:102,102 F:100,130 E:100,58 W:104,80",b:"W:118,40",
+  tips:["Codos pegados al cuerpo y quietos.","Sube hasta contraer el bíceps sin mover el hombro.","Baja lento hasta estirar casi del todo.","Muñecas firmes."],err:"Balancear el cuerpo para subir el peso."},
+ pushdown:{n:"Extensión de tríceps en polea",props:'<rect x="160" y="4" width="12" height="128" rx="2" class="pr"/>',cable:[["W",160,6]],a:"H:100,22 N:100,34 P:100,74 K:102,102 F:100,130 E:100,58 W:116,44",b:"W:104,82",
+  tips:["Codos pegados a los costados, no se mueven.","Empuja hacia abajo hasta estirar los brazos.","Aprieta el tríceps 1 segundo abajo.","Sube controlado hasta 90°."],err:"Despegar los codos o inclinarte encima de la polea."},
+ frances:{n:"Extensión de tríceps (francés)",props:BENCH,eq:[["bar","W"]],a:"H:38,84 N:50,88 P:104,90 K:130,92 F:134,131 E:52,64 W:52,42",b:"W:32,72",
+  tips:["Brazos verticales y codos apuntando al techo.","Baja la barra hacia la frente o detrás de la cabeza.","Solo se mueven los antebrazos.","Extiende sin abrir los codos."],err:"Abrir los codos hacia afuera."},
+ sentadilla:{n:"Sentadilla",props:FLOOR,eq:[["bar","W"]],a:"H:100,22 N:100,34 P:98,74 K:104,102 F:100,130 E:86,42 W:96,34",b:"H:106,44 N:102,56 P:78,92 K:118,96 F:100,130 E:88,64 W:98,56",
+  tips:["Pies a la anchura de hombros, puntas un poco afuera.","Baja llevando la cadera atrás y abajo, rodillas en la línea de los pies.","Baja al menos hasta que el muslo quede paralelo.","Pecho arriba y talones pegados al piso."],err:"Rodillas hacia adentro o talones que se levantan."},
+ goblet:{n:"Sentadilla goblet / sumo",props:FLOOR,eq:[["db","W"]],a:"H:100,22 N:100,34 P:98,74 K:104,102 F:100,130 E:106,52 W:110,44",b:"H:106,44 N:102,56 P:78,92 K:118,96 F:100,130 E:112,74 W:116,64",
+  tips:["Sostén la mancuerna pegada al pecho.","En sumo: pies más abiertos y puntas hacia afuera (trabaja más glúteo).","Baja con el torso erguido.","Empuja el piso con los talones para subir."],err:"Inclinar el torso hacia adelante."},
+ prensa:{n:"Prensa de piernas",props:'<line x1="24" y1="56" x2="76" y2="106" class="pb"/>',plat:"F",a:"H:38,64 N:46,74 P:72,100 E:70,95 W:80,100 K:104,74 F:132,56",b:"K:92,64 F:116,78",
+  tips:["Espalda y glúteos pegados al respaldo.","Baja hasta que las rodillas lleguen cerca del pecho sin despegar la cadera.","Empuja con todo el pie, sobre todo talones.","No bloquees las rodillas arriba."],err:"Bajar tanto que la cadera se despega del asiento."},
+ ext_cuad:{n:"Extensión de cuádriceps",props:'<rect x="70" y="92" width="44" height="6" rx="2" class="pr"/><line x1="76" y1="50" x2="76" y2="92" class="pb"/>',eq:[["pad","F"]],a:"H:90,38 N:90,50 P:92,90 K:118,90 F:120,124 E:98,70 W:104,90",b:"F:148,86",
+  tips:["Rodilla alineada con el eje de la máquina.","Extiende hasta estirar la pierna y aprieta 1 segundo.","Baja lento.","Agárrate del asiento para no despegarte."],err:"Subir con impulso y dejar caer el peso."},
+ curl_fem:{n:"Curl femoral",props:'<rect x="20" y="92" width="122" height="6" rx="2" class="pr"/><line x1="40" y1="98" x2="40" y2="132" class="pl"/><line x1="126" y1="98" x2="126" y2="132" class="pl"/>',eq:[["pad","F"]],a:"H:28,84 N:40,88 P:92,90 K:138,90 E:30,100 W:20,104 F:166,90",b:"F:146,60",
+  tips:["Cadera pegada al banco todo el tiempo.","Lleva los talones hacia los glúteos.","Aprieta arriba y baja en 3 segundos.","No arquees la espalda baja."],err:"Levantar la cadera para ayudarte."},
+ pm:{n:"Peso muerto",props:FLOOR,eq:[["bar","W"]],a:"H:100,22 N:100,34 P:100,74 K:102,102 F:100,130 E:104,54 W:106,74",b:"H:140,52 N:130,58 P:86,72 K:100,102 F:100,130 E:130,80 W:130,100",
+  tips:["Barra pegada a las piernas en todo el recorrido.","Lleva la cadera hacia atrás con la espalda recta (bisagra).","En rumano las rodillas casi no se doblan: baja hasta sentir los femorales.","Sube apretando glúteos, sin echarte hacia atrás."],err:"Redondear la espalda baja."},
+ hipthrust:{n:"Hip thrust",props:'<rect x="18" y="82" width="44" height="8" rx="2" class="pr"/><line x1="40" y1="90" x2="40" y2="132" class="pl"/>'+FLOOR,eq:[["bar","P"]],a:"H:46,76 N:58,82 P:92,114 K:122,98 F:126,131 E:70,96 W:90,110",b:"N:58,80 H:46,72 P:96,82 K:126,84 E:72,90 W:94,80",
+  tips:["Parte alta de la espalda apoyada en el banco.","Pies a la anchura de la cadera, espinillas verticales arriba.","Sube la cadera apretando glúteos hasta quedar recta.","Barbilla hacia el pecho, sin arquear la espalda."],err:"Arquear la espalda baja en vez de empujar con glúteos."},
+ puente:{n:"Puente de glúteo",props:FLOOR,a:"H:40,124 N:52,126 P:90,126 K:120,100 F:126,130 E:70,128 W:86,130",b:"P:92,100",
+  tips:["Acostada boca arriba, pies cerca de los glúteos.","Empuja con los talones y sube la cadera.","Aprieta glúteos 2 segundos arriba.","A una pierna es más difícil: estira la otra."],err:"Empujar con la espalda en vez de glúteos."},
+ patada:{n:"Patada de glúteo",props:'<rect x="34" y="40" width="14" height="92" rx="2" class="pr"/>',cable:[["F2",190,128]],a:"H:68,36 N:78,42 P:104,74 K:102,102 F:100,130 E:66,52 W:52,60 K2:106,100 F2:108,128",b:"K2:132,82 F2:160,76",
+  tips:["Torso un poco inclinado y abdomen firme.","Lleva la pierna atrás y arriba apretando el glúteo.","No arquees la espalda baja para subir más.","Baja controlado."],err:"Girar la cadera o arquear la espalda."},
+ abduccion:{n:"Abducción de cadera",front:1,props:'<rect x="74" y="94" width="52" height="6" rx="2" class="pr"/>',eq:[["pad","LK"],["pad","RK"]],a:"H:100,40 N:100,52 P:100,92 LE:86,72 LW:84,92 RE:114,72 RW:116,92 LK:92,104 LF:92,132 RK:108,104 RF:108,132",b:"LK:72,104 LF:74,132 RK:128,104 RF:126,132",
+  tips:["Espalda apoyada o un poco inclinada adelante (más glúteo).","Abre las piernas empujando con la parte externa.","Aguanta 1 segundo abierta.","Cierra lento sin dejar que las placas choquen."],err:"Hacerlo rápido y con rebote."},
+ zancada:{n:"Zancadas",props:FLOOR,eq:[["db","W"]],a:"H:100,22 N:100,34 P:100,74 K:116,100 F:122,130 K2:86,100 F2:74,128 E:100,56 W:100,76",b:"H:100,42 N:100,54 P:100,94 K:124,102 F:122,130 K2:92,124 F2:68,128 E:100,76 W:100,96",
+  tips:["Paso largo, torso erguido.","Baja hasta que la rodilla de atrás casi toque el piso.","Rodilla de adelante en línea con el pie.","Empuja con el talón de adelante para subir."],err:"Paso muy corto: la rodilla se va muy adelante."},
+ bulgara:{n:"Sentadilla búlgara",props:'<rect x="40" y="98" width="40" height="6" rx="2" class="pr"/><line x1="60" y1="104" x2="60" y2="132" class="pl"/>'+FLOOR,eq:[["db","W"]],a:"H:100,22 N:100,34 P:100,74 K:118,100 F:122,130 K2:84,96 F2:62,98 E:100,56 W:100,76",b:"H:102,42 N:102,54 P:100,94 K:126,102 F:122,130 K2:86,118 E:102,76 W:102,96",
+  tips:["Pie de atrás apoyado en un banco o silla.","Baja recto, con el peso en la pierna de adelante.","Inclínate un poco adelante para más glúteo.","Sube empujando con el talón."],err:"Pie de adelante demasiado cerca del banco."},
+ stepup:{n:"Step-up",props:'<rect x="108" y="104" width="42" height="28" rx="2" class="pr"/>'+FLOOR,a:"H:100,28 N:100,40 P:98,80 K:124,82 F:124,104 K2:98,106 F2:96,132 E:100,60 W:100,80",b:"H:120,8 N:120,20 P:120,60 K:124,82 F:124,104 K2:116,82 F2:118,104 E:120,40 W:120,60",
+  tips:["Sube con todo el pie sobre el cajón o banco.","Empuja con el talón de la pierna de arriba.","No te impulses con la pierna de abajo.","Baja controlado."],err:"Saltar con la pierna de abajo."},
+ talones:{n:"Elevación de talones",props:FLOOR,a:"H:100,22 N:100,34 P:100,74 K:100,102 F:98,128 T:112,130 E:100,56 W:100,76",b:"H:100,14 N:100,26 P:100,66 K:100,94 F:100,120 E:100,48 W:100,68",
+  tips:["Sube lo más alto posible sobre las puntas.","Pausa 1–2 segundos arriba.","Baja hasta estirar bien la pantorrilla.","Rodillas casi estiradas."],err:"Rebotar rápido abajo."},
+ crunch:{n:"Crunch abdominal",props:FLOOR,a:"H:58,124 N:70,126 P:110,124 K:136,100 F:160,128 E:78,114 W:66,118",b:"H:76,96 N:86,108 E:92,98 W:82,98",
+  tips:["Lleva las costillas hacia la cadera.","Exhala al subir.","No jales el cuello con las manos.","Baja lento."],err:"Usar impulso o jalar la cabeza."},
+ crunch_polea:{n:"Crunch en polea",cable:[["W",60,2]],props:FLOOR,a:"H:80,52 N:90,62 P:108,100 K:110,130 F:140,130 E:84,56 W:78,46",b:"H:66,104 N:76,96 E:70,96 W:64,90",
+  tips:["De rodillas con la cuerda junto a la cabeza.","Enrolla el torso llevando los codos hacia las rodillas.","La cadera no se mueve.","Sube controlado."],err:"Sentarte sobre los talones en vez de doblar el abdomen."},
+ plancha:{n:"Plancha",props:FLOOR,a:"H:48,96 N:60,99 P:110,110 K:135,118 F:160,128 E:60,128 W:80,128",b:"P:110,108",
+  tips:["Codos bajo los hombros.","Cuerpo recto de cabeza a talones.","Aprieta abdomen y glúteos.","Respira normal."],err:"Dejar caer la cadera o subirla demasiado."},
+ flexiones:{n:"Flexiones",props:FLOOR,a:"H:44,70 N:56,76 P:108,100 K:134,112 F:160,128 E:57,100 W:58,128",b:"H:44,102 N:56,106 P:108,114 K:134,120 E:76,108",
+  tips:["Manos un poco más abiertas que los hombros.","Cuerpo recto como una tabla.","Baja hasta casi tocar el piso con el pecho.","Si cuesta, apoya las rodillas."],err:"Cadera caída o codos totalmente abiertos."},
+ pike:{n:"Flexiones pike",props:FLOOR,a:"H:62,106 N:70,96 P:118,74 K:136,104 F:150,128 E:66,112 W:62,128",b:"H:64,122 N:72,112 P:120,72 E:86,116",
+  tips:["Cadera alta formando una V invertida.","Baja la cabeza hacia el piso entre las manos.","Empuja de vuelta hacia arriba.","Pies más cerca = más difícil."],err:"Bajar la cadera y convertirla en flexión normal."},
+ elev_piernas:{n:"Elevación de piernas",props:'<line x1="68" y1="6" x2="132" y2="6" class="pb"/>',a:"H:108,32 N:100,40 P:100,82 E:100,24 W:100,8 K:100,106 F:100,132",b:"K:126,84 F:152,84",
+  tips:["Cuelga con los hombros activos.","Sube las piernas sin balancearte.","Enrolla un poco la pelvis arriba.","Baja lento."],err:"Balancearte para subir."},
+ swing:{n:"Swing con kettlebell",props:FLOOR,eq:[["kb","W"]],a:"H:138,54 N:128,58 P:90,72 K:100,100 F:100,130 E:116,84 W:102,102",b:"H:102,22 N:100,34 P:98,74 K:100,102 F:100,130 E:124,40 W:148,38",
+  tips:["Es una bisagra de cadera, no una sentadilla.","Lleva la pesa entre las piernas y empuja la cadera adelante.","Los brazos solo guían: la fuerza sale de los glúteos.","Termina de pie, recto y con glúteos apretados."],err:"Levantar la pesa con los brazos u hombros."},
+ mountain:{n:"Mountain climbers",props:FLOOR,a:"H:44,70 N:56,76 P:108,100 K:136,118 F:160,128 E:57,100 W:58,128",b:"K:92,108 F:116,120",
+  tips:["Posición de plancha con brazos estirados.","Lleva una rodilla al pecho y alterna rápido.","Cadera baja y estable.","Mantén el ritmo los 40 s."],err:"Subir mucho la cadera."},
+ nordico:{n:"Curl nórdico",props:FLOOR,a:"H:104,38 N:102,50 P:100,90 K:100,128 F:70,128 E:108,70 W:116,80",b:"H:160,62 N:152,72 P:126,100 E:166,84 W:176,96",
+  tips:["De rodillas con los talones sujetos (mueble o compañero).","Baja el cuerpo recto hacia adelante lo más lento posible.","Usa las manos para frenar al final.","Ayúdate con las manos para subir al principio."],err:"Doblar la cadera en vez de bajar recto."},
+ remo_inv:{n:"Remo invertido",props:'<line x1="46" y1="48" x2="112" y2="48" class="pb"/>'+FLOOR,a:"H:68,94 N:80,96 P:126,112 K:148,120 F:170,128 E:78,73 W:76,50",b:"H:70,60 N:82,64 P:128,96 K:150,112 E:100,74",
+  tips:["Bajo una mesa firme o barra baja, cuerpo recto.","Jala el pecho hacia la barra.","Junta las escápulas arriba.","Pies más adelante = más difícil."],err:"Dejar caer la cadera."}
+};
+const FIG_RULES=[[/pullover/,"pullover"],[/frances|sobre la cabeza/,"frances"],[/extension (de )?triceps|extension en polea/,"pushdown"],[/extension de cuadriceps/,"ext_cuad"],[/nordico/,"nordico"],[/curl femoral/,"curl_fem"],[/hip thrust/,"hipthrust"],[/puente/,"puente"],[/patada/,"patada"],[/abduccion/,"abduccion"],[/step/,"stepup"],[/bulgara/,"bulgara"],[/zancada/,"zancada"],[/goblet|sumo/,"goblet"],[/salto|sentadilla/,"sentadilla"],[/prensa/,"prensa"],[/talones/,"talones"],[/peso muerto/,"pm"],[/swing/,"swing"],[/remo invertido/,"remo_inv"],[/remo sentado|polea baja/,"remo_polea"],[/remo/,"remo"],[/dominada/,"dominadas"],[/jalon/,"jalon"],[/face pull/,"facepull"],[/pajaros|reverse|posterior/,"pajaros"],[/elevaciones? (laterales|frontales)/,"lateral"],[/pike/,"pike"],[/militar|press de hombro|curl \+ press/,"militar"],[/apertura|cruce|pec deck/,"apertura"],[/fondos/,"fondos"],[/flexion|burpee/,"flexiones"],[/press inclinado/,"incline"],[/press/,"press"],[/curl/,"curl"],[/crunch en polea/,"crunch_polea"],[/crunch|bicho/,"crunch"],[/elevacion de piernas/,"elev_piernas"],[/mountain/,"mountain"],[/plancha|superman/,"plancha"]];
+function figOf(name){const n=norm(name);for(const [re,k] of FIG_RULES)if(re.test(n))return k;return null}
+function parsePose(s){const o={};s.split(/\s+/).forEach(t=>{const [k,v]=t.split(":");const [x,y]=v.split(",").map(Number);o[k]=[x,y]});return o}
+const FIG_CACHE={};
+function figSVG(key,cls){
+  const P=PAT[key];if(!P)return "";
+  if(!P._a){P._a=parsePose(P.a);P._b=Object.assign({},P._a,parsePose(P.b))}
+  const A=P._a,B=P._b,D="2.6s";
+  const an=(attr,a,b)=>a===b?"":`<animate attributeName="${attr}" values="${a};${b};${a}" keyTimes="0;.5;1" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1" dur="${D}" repeatCount="indefinite"/>`;
+  const line=(p,q,c)=>`<line x1="${A[p][0]}" y1="${A[p][1]}" x2="${A[q][0]}" y2="${A[q][1]}" class="${c}">${an("x1",A[p][0],B[p][0])}${an("y1",A[p][1],B[p][1])}${an("x2",A[q][0],B[q][0])}${an("y2",A[q][1],B[q][1])}</line>`;
+  const circ=(p,r,c)=>`<circle cx="${A[p][0]}" cy="${A[p][1]}" r="${r}" class="${c}">${an("cx",A[p][0],B[p][0])}${an("cy",A[p][1],B[p][1])}</circle>`;
+  let g=P.props||"";
+  (P.cable||[]).forEach(([p,x,y])=>{g+=`<line x1="${x}" y1="${y}" x2="${A[p][0]}" y2="${A[p][1]}" class="cb">${an("x2",A[p][0],B[p][0])}${an("y2",A[p][1],B[p][1])}</line>`});
+  (P.front?SK_FRONT:SK_SIDE).forEach(([p,q])=>{if(A[p]&&A[q])g+=line(p,q,"bd")});
+  if(P.bar)g+=line(P.bar[0],P.bar[1],"eqb");
+  if(P.plat){const p=P.plat,o=(pt)=>`${pt[0]-11},${pt[1]-11}`;g+=`<line x1="${A[p][0]-11}" y1="${A[p][1]-11}" x2="${A[p][0]+11}" y2="${A[p][1]+11}" class="eqb">${an("x1",A[p][0]-11,B[p][0]-11)}${an("y1",A[p][1]-11,B[p][1]-11)}${an("x2",A[p][0]+11,B[p][0]+11)}${an("y2",A[p][1]+11,B[p][1]+11)}</line>`}
+  g+=circ("H",8,"hd");
+  (P.eq||[]).forEach(([t,p])=>{g+=circ(p,{bar:8,db:5,kb:7,pad:5}[t],t==="pad"?"eqp":"eq")});
+  return `<svg viewBox="0 0 200 140" class="${cls||""}" role="img" aria-label="Cómo hacer: ${esc(P.n)}">${g}</svg>`;
+}
+function howHTML(ex){
+  const k=figOf(ex.n),P=PAT[k];
+  const q=encodeURIComponent("como hacer "+ex.n.replace(/\(.*?\)|—.*$/g,"")+" tecnica correcta");
+  if(!P)return `<div class="how"><p class="small mut">Busca la técnica en video:</p><a class="vid" href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">▶ Ver videos de este ejercicio</a></div>`;
+  return `<div class="how"><div class="howfig">${figSVG(k,"big")}</div>
+   <b class="small">Cómo hacerlo</b><ol class="small">${P.tips.map(t=>`<li>${t}</li>`).join("")}</ol>
+   <p class="small"><span class="wc">⚠️ Error común:</span> ${P.err}</p>
+   <a class="vid" href="https://www.youtube.com/results?search_query=${q}" target="_blank" rel="noopener">▶ Ver videos de este ejercicio</a></div>`;
+}
+
 function recommend(o){
   let r=[];
   if(o.lvl==="pri"){r=["s5x5","evid"];if(o.goal==="bajar"||o.somato==="endo")r.push("circ")}
@@ -1248,13 +1380,14 @@ function renderPlan(P){
     <p class="small mut" style="margin:2px 0 8px">${esc(M.by)} · ${P.o.sex==="f"?"Mujer · ":""}${somN} · ${P.days} días · ${P.o.min} min</p>
     <div class="week">${weekHtml}</div>
     <p class="small mut" style="margin:4px 0 8px">Los días sin número son descanso total o cardio suave. ${P.weekNote||""}</p>
+    <div class="note small">👆 Toca la figura de cada ejercicio para ver cómo se hace, con consejos y videos.</div>
     ${P.notes.map(n=>`<div class="note small">${n}</div>`).join("")}
     <div class="note small" style="background:rgba(90,169,255,.08);border-color:rgba(90,169,255,.3)"><b>Esquema:</b> ${P.scheme}.</div>
     ${G?`<p class="small mut">Nutrición: tu meta es <b class="ac">${r0(G.kcal)} kcal</b> y <b class="pc">${r0(G.p)} g de proteína</b> al día.</p>`:`<p class="small mut"><a href="#calculadora" style="color:var(--acc)">Calcula tus calorías</a> para acompañar el plan.</p>`}
   </div>`+P.plan.map((d,i)=>`<div class="card"><div class="row between"><h2 style="margin:0">Día ${i+1}: ${esc(d.name)}</h2><span class="tag ${d.tag[0]}">${esc(d.tag[1])}</span></div>
     <p class="small mut" style="margin:4px 0 6px">Calentamiento 5 min (movilidad + series ligeras del primer ejercicio).</p>
-    ${d.exs.map(e=>{const key=exKey(e);return `<div class="ex" data-key="${esc(key)}" data-m="${esc(e.m)}" data-ns="${e.ns||1}"><div class="exrow"><div class="grow"><div class="en">${esc(e.n)}${e.fst?`<span class="tag fst">FST-7</span>`:""}${e.ss?`<span class="tag ss">Superserie A1</span>`:""}${e.post?`<span class="tag ss">Superserie A2</span>`:""}${e.tag?`<span class="tag ${e.tag[0]}">${esc(e.tag[1])}</span>`:""}</div>
-      <div class="es">${esc(e.m)} · ${esc(e.sets)} · ${esc(e.reps)} · ${e.ss?"":"descanso "}${esc(e.rest)}</div>${e.note?`<div class="small" style="margin-top:3px;color:#9ccbff">${e.note}</div>`:""}<div class="last">${lastTxt(key)}</div></div><button type="button" class="logbtn ${loggedToday(key)?"done":""}" data-log>${loggedToday(key)?"✓ Editar":"Anotar"}</button></div><div class="wfbox"></div></div>`}).join("")}
+    ${d.exs.map(e=>{const key=exKey(e);return `<div class="ex" data-key="${esc(key)}" data-n="${esc(e.n)}" data-m="${esc(e.m)}" data-ns="${e.ns||1}"><div class="exrow"><button type="button" class="figbtn" data-how aria-label="Ver cómo se hace">${figSVG(figOf(e.n),"th")||'<span style="font-size:20px">▶</span>'}</button><div class="grow"><div class="en">${esc(e.n)}${e.fst?`<span class="tag fst">FST-7</span>`:""}${e.ss?`<span class="tag ss">Superserie A1</span>`:""}${e.post?`<span class="tag ss">Superserie A2</span>`:""}${e.tag?`<span class="tag ${e.tag[0]}">${esc(e.tag[1])}</span>`:""}</div>
+      <div class="es">${esc(e.m)} · ${esc(e.sets)} · ${esc(e.reps)} · ${e.ss?"":"descanso "}${esc(e.rest)}</div>${e.note?`<div class="small" style="margin-top:3px;color:#9ccbff">${e.note}</div>`:""}<div class="last">${lastTxt(key)}</div></div><button type="button" class="logbtn ${loggedToday(key)?"done":""}" data-log>${loggedToday(key)?"✓ Editar":"Anotar"}</button></div><div class="howbox"></div><div class="wfbox"></div></div>`}).join("")}
     ${d.extra?`<p class="small" style="margin:8px 0 0">🏃 ${d.extra}</p>`:""}
   </div>`).join("")+`<div class="card"><h2>Reglas para progresar</h2><ul class="small">
     <li>Anota peso y reps de cada serie efectiva. Cada sesión intenta superar en 1 rep o un poco más de peso.</li>
@@ -1265,7 +1398,7 @@ function renderPlan(P){
 $("#trForm").addEventListener("submit",e=>{
   e.preventDefault();
   const o=readTrainForm();
-  S.train=o;save();renderPlan(genPlan(o));$("#trRes").scrollIntoView({behavior:"smooth",block:"start"});
+  S.train=o;save();renderPlan(genPlan(o));collapseTrain(true);$("#trRes").scrollIntoView({behavior:"smooth",block:"start"});
 });
 // mini test somatotipo
 const QZ=[["Tu contextura natural (sin entrenar) es…",["Delgada, huesos finos, hombros estrechos","Atlética, hombros anchos y cintura estrecha","Ancha y redondeada, huesos grandes"]],
@@ -1280,7 +1413,16 @@ function renderQuiz(){
   $("#quiz").innerHTML=`<div class="small mut">Pregunta ${i+1} de 3</div><b>${QZ[i][0]}</b>`+QZ[i][1].map((t,j)=>`<button type="button" class="full sm" data-qa="${j}" style="margin-top:6px;text-align:left">${t}</button>`).join("");
   $$("#quiz [data-qa]").forEach(b=>b.onclick=()=>{qzA.push(+b.dataset.qa);renderQuiz()});
 }
-function fillTrain(){const o=S.train;if(!o)return;$("#tSomato").value=o.somato;$("#tDays").value=String(o.days);$("#tMin").value=String(o.min);$("#tLvl").value=o.lvl;lagSel=o.lags||(o.lag?[o.lag]:[]);setTrSex(o.sex||(S.profile&&S.profile.sex)||"m");$("#tGoal").value=o.goal;$("#tMeth").value=o.method||"auto";renderMethUI();renderPlan(genPlan(o))}
+function collapseTrain(on){
+  $("#trForm").classList.toggle("hidden",on);$("#trIntro").classList.toggle("hidden",on);$("#trSum").classList.toggle("hidden",!on);
+  if(!on||!S.train)return;
+  const o=S.train,M=METHODS[o.method||"auto"],lags=(o.lags||(o.lag?[o.lag]:[])).map(k=>MUSN[k]).filter(Boolean);
+  const somN={ecto:"Ectomorfo",meso:"Mesomorfo",endo:"Endomorfo"}[o.somato],lvN={pri:"Principiante",int:"Intermedio",ava:"Avanzado"}[o.lvl],gN={bajar:"Bajar grasa",recomp:"Recomposición",mantener:"Mantener",subir:"Ganar músculo"}[o.goal];
+  $("#trSum").innerHTML=`<div class="sumchips"><span class="on">${esc(M.n)}</span><span>${o.sex==="f"?"Mujer":"Hombre"}</span><span>${somN}</span><span>${o.days} días · ${o.min} min</span><span>${lvN}</span><span>${gN}</span>${lags.length?`<span class="on">Prioridad: ${lags.join(", ")}</span>`:""}</div>
+    <button type="button" class="sm" id="trEdit">✏️ Cambiar mi plan</button>`;
+  $("#trEdit").onclick=()=>collapseTrain(false);
+}
+function fillTrain(){const o=S.train;if(!o){$("#trRes").innerHTML="";collapseTrain(false);return}$("#tSomato").value=o.somato;$("#tDays").value=String(o.days);$("#tMin").value=String(o.min);$("#tLvl").value=o.lvl;lagSel=o.lags||(o.lag?[o.lag]:[]);setTrSex(o.sex||(S.profile&&S.profile.sex)||"m");$("#tGoal").value=o.goal;$("#tMeth").value=o.method||"auto";renderMethUI();renderPlan(genPlan(o));collapseTrain(true)}
 
 /* ================= REGISTRO DE FUERZA ================= */
 const exKey=e=>e.n+(e.fst?" · FST-7":"");
@@ -1298,6 +1440,7 @@ function unitOf(h){return h.some(w=>bestSet(w.sets).kg>0)?"kg":"reps"}
 
 $("#trRes").addEventListener("click",e=>{
   const ex=e.target.closest(".ex");if(!ex)return;
+  if(e.target.closest("[data-how]")){const hb=ex.querySelector(".howbox");hb.innerHTML=hb.innerHTML?"":howHTML({n:ex.dataset.n});return}
   if(e.target.closest("[data-log]")){toggleForm(ex);return}
   if(e.target.closest("[data-addset]")){const box=ex.querySelector(".sets");box.insertAdjacentHTML("beforeend",setRow(box.children.length+1,{}));return}
   if(e.target.closest("[data-save]"))saveForm(ex);
@@ -1454,7 +1597,7 @@ async function cloudStart(){
         else if(lt>rt||(!remote[k]&&local[k]))Cloud.dirty.add(k);
       }
     }
-    cloudBaseline();saveLocal();renderAll();if(location.hash==="#progreso")renderProgress();
+    cloudBaseline();saveLocal();renderAll();fillTrain();if(location.hash==="#progreso")renderProgress();
     await cloudPush();
     if(Cloud.unsub)Cloud.unsub();
     Cloud.unsub=Cloud.fs.collection("users").doc(Cloud.user.uid).collection("chunks").onSnapshot(qs=>{
@@ -1538,7 +1681,7 @@ async function authDo(a){
       if(Cloud.dirty.size)return toast("Aún no se guardó todo en la nube. Conéctate a internet e inténtalo de nuevo.");
       await Cloud.auth.signOut();
       // Se borran los datos de este teléfono (ya están en la nube) para que otra cuenta no los mezcle.
-      S={log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[]};saveLocal();cloudBaseline();renderAll();
+      S={log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[]};saveLocal();cloudBaseline();renderAll();fillTrain();
       toast("Sesión cerrada");
     }
     else if(a==="sync"){await cloudStart();toast("Sincronizado")}
