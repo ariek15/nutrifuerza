@@ -102,6 +102,7 @@ button:active{transform:scale(.98)}
 .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:99px;background:var(--card2);border:1px solid var(--line);color:var(--mut);margin-left:4px;vertical-align:middle}
 .tag.fst{background:rgba(255,107,138,.15);border-color:rgba(255,107,138,.5);color:#ff9fb3}
 .tag.hd{background:rgba(90,169,255,.15);border-color:rgba(90,169,255,.5);color:#9ccbff}
+.tag.pri{background:rgba(255,204,77,.15);border-color:rgba(255,204,77,.55);color:#ffd970}
 .tag.m{background:rgba(180,140,255,.15);border-color:rgba(180,140,255,.5);color:#cdb6ff}
 .tag.ss{background:rgba(255,182,72,.15);border-color:rgba(255,182,72,.5);color:#ffd08a}
 .ex{padding:10px 0;border-top:1px solid var(--line)}
@@ -299,6 +300,8 @@ li{margin:3px 0}
     <h2>Tu plan de entrenamiento</h2>
     <p class="small mut" style="margin-top:0">Elige entre 11 métodos (Heavy Duty, FST-7, 5/3/1, 5×5, PHUL, Y3T, DC, 10×10, hipertrofia basada en evidencia, circuitos o calistenia en casa) o deja que la app te recomiende según tu cuerpo, nivel y tiempo.</p>
     <form id="trForm">
+      <label>Sexo</label>
+      <div class="seg" id="tSexSeg" style="margin-bottom:10px"><button type="button" data-v="m" class="on">Hombre</button><button type="button" data-v="f">Mujer</button></div>
       <label>Tipo de cuerpo (somatotipo)</label>
       <select id="tSomato">
         <option value="ecto">Ectomorfo: delgado, me cuesta subir de peso</option>
@@ -314,9 +317,9 @@ li{margin:3px 0}
           <select id="tMin"><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option><option value="75">75 min</option><option value="90">90 min</option></select></div>
         <div><label>Nivel</label>
           <select id="tLvl"><option value="pri">Principiante (&lt; 1 año)</option><option value="int" selected>Intermedio (1–3 años)</option><option value="ava">Avanzado (3+ años)</option></select></div>
-        <div><label>Músculo a priorizar</label>
-          <select id="tLag"><option value="">Ninguno</option><option value="pecho">Pecho</option><option value="espalda">Espalda</option><option value="hombro">Hombros</option><option value="biceps">Bíceps</option><option value="triceps">Tríceps</option><option value="cuad">Cuádriceps</option><option value="femoral">Femorales</option><option value="gemelo">Pantorrillas</option></select></div>
       </div>
+      <div style="margin-top:10px"><label>Músculos a priorizar (hasta 2)</label>
+        <div class="chips" id="tLagChips" style="flex-wrap:wrap"></div></div>
       <div style="margin-top:10px"><label>Objetivo</label>
         <select id="tGoal"><option value="bajar">Bajar grasa</option><option value="recomp">Recomposición</option><option value="mantener">Mantener / salud</option><option value="subir" selected>Ganar músculo</option></select></div>
       <div style="margin-top:10px"><label>Método de entrenamiento</label><select id="tMeth"><option value="auto">Automático según tu cuerpo (Heavy Duty + FST-7)</option><option value="hd">Heavy Duty — Mike Mentzer</option><option value="fst7">FST-7 — Hany Rambod</option><option value="evid">Hipertrofia basada en evidencia — Schoenfeld</option><option value="y3t">Y3T — Neil Hill</option><option value="dc">DC Training — Dante Trudel</option><option value="gvt">German Volume Training 10×10</option><option value="phul">PHUL: fuerza + hipertrofia</option><option value="w531">5/3/1 — Jim Wendler</option><option value="s5x5">5×5 de fuerza (principiantes)</option><option value="circ">Circuito metabólico + HIIT (quemar grasa)</option><option value="casa">Calistenia / en casa (sin gym)</option></select>
@@ -809,7 +812,7 @@ function showCalc(p,R){
    <p class="small mut">Reparto: P ${r0(R.P*4/R.kcal*100)}% · C ${r0(R.C*4/R.kcal*100)}% · G ${r0(R.F*9/R.kcal*100)}%</p>
    <div class="note small">${p.goal==="bajar"?"Pésate 3–4 veces por semana en ayunas y mira el promedio semanal. Si en 2–3 semanas no baja, resta 100–150 kcal.":p.goal==="subir"?"Si subes más de 0.5 kg/semana (o 1 kg en principiantes) es probable que sea grasa: reduce 100–150 kcal. Mentzer: el músculo crece despacio, no hace falta comer de más.":"Ajusta ±100–150 kcal según tu peso promedio cada 2–3 semanas."}</div>
    <button class="pri full" id="useGoal">Usar como mi meta diaria</button></div>`;
-  $("#useGoal").onclick=()=>{S.goal={kcal:R.kcal,p:R.P,c:R.C,f:R.F};S.profile=p;save();$("#tGoal").value=p.goal;renderAll();toast("Meta guardada: "+R.kcal+" kcal");location.hash="registro"};
+  $("#useGoal").onclick=()=>{S.goal={kcal:R.kcal,p:R.P,c:R.C,f:R.F};S.profile=p;save();$("#tGoal").value=p.goal;setTrSex(p.sex);renderAll();toast("Meta guardada: "+R.kcal+" kcal");location.hash="registro"};
   $("#calcRes").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function fillCalc(){const p=S.profile;if(!p)return;$("#cSex").value=p.sex;$("#cAge").value=p.age;$("#cW").value=p.w;$("#cH").value=p.h;$("#cBF").value=p.bf||"";$("#cTW").value=p.tw||"";$("#cAct").value=String(p.act);$("#cMode").value=p.mode;setGoalSeg(p.goal);if(RATES[p.goal])$("#cRate").value=String(p.rate);$("#tGoal").value=p.goal}
@@ -824,7 +827,8 @@ const EX={
  cuad:{n:"Cuádriceps",l:[{n:"Extensión de cuádriceps",t:"pre"},{n:"Prensa de piernas",t:"post"},{n:"Sentadilla con barra"},{n:"Sentadilla búlgara / zancadas"}],fst:"Extensión de cuádriceps"},
  femoral:{n:"Femorales",l:[{n:"Curl femoral acostado"},{n:"Peso muerto rumano"},{n:"Curl femoral sentado"}],fst:"Curl femoral acostado o sentado"},
  gemelo:{n:"Pantorrillas",l:[{n:"Elevación de talones de pie"},{n:"Elevación de talones en prensa"}],fst:"Elevación de talones en prensa"},
- abs:{n:"Abdomen",l:[{n:"Crunch en polea"},{n:"Elevación de piernas colgado"}]}
+ gluteo:{n:"Glúteos",l:[{n:"Hip thrust con barra"},{n:"Sentadilla sumo con mancuerna"},{n:"Patada de glúteo en polea"},{n:"Abducción de cadera en máquina"},{n:"Step-up al banco"}],fst:"Patada de glúteo en polea o abducción en máquina"},
+ abs:{n:"Abdomen",l:[{n:"Crunch en polea"},{n:"Elevación de piernas colgado"},{n:"Plancha con peso"}]}
 };
 const SPLITS={
  2:[["Cuerpo completo A",["pecho","espalda","cuad","gemelo"]],["Cuerpo completo B",["cuad","femoral","hombro","biceps","triceps"]]],
@@ -836,7 +840,7 @@ const SPLITS={
 const WEEK={2:[0,3],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,3,4],6:[0,1,2,3,4,5]};
 const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
 function genAuto(o,ov={}){
-  const {somato,days,min,lvl,lag,goal:g}=o;
+  const {somato,days,min,lvl,goal:g}=o;const lag=(o.lags||[])[0]||"";
   const beginner=lvl==="pri";
   // estilo
   let style, perEx, setsTxt, repsTxt, rest, fstPerWeek;
@@ -850,7 +854,7 @@ function genAuto(o,ov={}){
   const S_={hd:{sets:"1–2 calentamiento + 1 serie al fallo",reps:"6–10 reps",rest:"2–3 min"},
     dens:{sets:"1 calentamiento + 2 series al fallo",reps:"8–12 reps",rest:"60–90 s"},
     pri:{sets:"2 series (deja 1–2 reps en reserva)",reps:"8–12 reps",rest:"90 s–2 min"}}[style];
-  const split=SPLITS[days];
+  const split=splitFor(o,SPLITS[days]);
   // elegir días FST-7: priorizar los que contienen el músculo rezagado
   const order=split.map((s,i)=>i).sort((a,b)=>{const A=lag&&split[a][1].includes(lag)?0:1,B=lag&&split[b][1].includes(lag)?0:1;return A-B||a-b});
   // repartir para que no queden juntos si no hay rezagado
@@ -935,9 +939,9 @@ const METHODS={
   desc:"Sin equipo (o con una barra de dominadas y una mochila con peso). Perfecto si no puedes pagar gym.",
   how:["Progresa haciendo el ejercicio más difícil: flexiones de rodillas → normales → pies elevados → a un brazo asistido.","Series al fallo técnico (cuando la forma se rompe, paras).","Para añadir peso usa una mochila con libros o botellas de agua.","Sube 1–2 reps por serie cada semana; cuando pases de 15–20, usa la versión más difícil."]}
 };
-const COMP=new Set(["Press inclinado con mancuernas","Fondos en paralelas (cuerpo inclinado)","Press de banca con barra","Jalón al pecho con agarre cerrado supino","Remo con barra o en máquina","Dominadas (asistidas si hace falta)","Remo con mancuerna a una mano","Press militar en máquina o con mancuernas","Fondos en paralelas o en banco","Prensa de piernas","Sentadilla con barra","Sentadilla búlgara / zancadas","Peso muerto rumano"]);
+const COMP=new Set(["Press inclinado con mancuernas","Fondos en paralelas (cuerpo inclinado)","Press de banca con barra","Jalón al pecho con agarre cerrado supino","Remo con barra o en máquina","Dominadas (asistidas si hace falta)","Remo con mancuerna a una mano","Press militar en máquina o con mancuernas","Fondos en paralelas o en banco","Prensa de piernas","Sentadilla con barra","Sentadilla búlgara / zancadas","Peso muerto rumano","Hip thrust con barra","Sentadilla sumo con mancuerna","Step-up al banco"]);
 const isC=e=>COMP.has(e.n);
-const MUSN={pecho:"Pecho",espalda:"Espalda",hombro:"Hombros",biceps:"Bíceps",triceps:"Tríceps",cuad:"Cuádriceps",femoral:"Femorales",gemelo:"Pantorrillas",abs:"Abdomen"};
+const MUSN={pecho:"Pecho",espalda:"Espalda",hombro:"Hombros",biceps:"Bíceps",triceps:"Tríceps",cuad:"Cuádriceps",femoral:"Femorales",gemelo:"Pantorrillas",gluteo:"Glúteos",abs:"Abdomen"};
 const X=(m,n,sets,reps,rest,ns,extra)=>Object.assign({m:MUSN[m]||m,n,sets,reps,rest,ns},extra||{});
 function nEx(o,perEx,reserve,cap){let n=Math.max(2,Math.floor((o.min-5-reserve)/perEx));return cap?Math.min(n,cap):n}
 function pickEx(mus,n){
@@ -955,6 +959,13 @@ function tmOf(name){const h=hist(name).filter(w=>bestSet(w.sets).kg>0);if(!h.len
 function fixDays(o,n,P){if(o.days!==n)P.notes.unshift(`Este método está pensado para <b>${n} días</b> por semana, así que lo armé con ${n} (elegiste ${o.days}).`);return n}
 
 function genPlan(o){
+  o=Object.assign({sex:"m"},o);if(!o.lags)o.lags=o.lag?[o.lag]:[];o.method=o.method||"auto";
+  const P=genBase(o);
+  if(o.sex==="f")womenAdjust(P,o);
+  applyPriority(P,o);
+  return P;
+}
+function genBase(o){
   const m=o.method||"auto";
   if(m==="auto")return genAuto(o);
   if(m==="hd")return genAuto(o,{hd:true});
@@ -967,6 +978,7 @@ function genPlan(o){
   return P;
 }
 function gymDays(o,P,split,perEx,scheme,opts={}){
+  split=splitFor(o,split);
   P.plan=split.map(([name,mus],i)=>{
     const fin=opts.fin?opts.fin(mus,i):[];
     const sel=pickEx(mus,nEx(o,perEx,fin.length*10+cardioRes(o),opts.cap));
@@ -978,7 +990,7 @@ function gymDays(o,P,split,perEx,scheme,opts={}){
 }
 function mFst7(o,P){
   gymDays(o,P,SPLITS[o.days],8,(e)=>isC(e)?["3–4 series","8–12 reps","90 s–2 min",4]:["3 series","10–12 reps","60–90 s",3],
-   {fin:(mus)=>{const main=o.lag&&mus.includes(o.lag)&&EX[o.lag].fst?o.lag:mus.find(x=>EX[x].fst);const f=[main];const sec=mus.find(x=>x!==main&&EX[x].fst);if(o.min>=75&&sec)f.push(sec);return f}});
+   {fin:(mus)=>{const L=(o.lags||[]).find(x=>mus.includes(x)&&EX[x].fst);const main=L?L:mus.find(x=>EX[x].fst);const f=[main];const sec=mus.find(x=>x!==main&&EX[x].fst);if(o.min>=75&&sec)f.push(sec);return f}});
   P.scheme="Básicos 3–4 × 8–12 · aislados 3 × 10–12 · cierre FST-7: 7 × 8–12 con 30–45 s";
   P.weekNote="FST-7 al final de cada grupo muscular principal en todas las sesiones.";
 }
@@ -1080,7 +1092,7 @@ function mCirc(o,P){
   P.weekNote="Deja al menos 1 día de descanso entre circuitos si sientes mucha fatiga.";
 }
 function mCasa(o,P){
-  const E={flex:["pecho","Flexiones (rodillas → normales → pies elevados)"],dom:["espalda","Dominadas en barra o remo invertido bajo una mesa"],pike:["hombro","Flexiones pike (hombros)"],fon:["triceps","Fondos entre dos sillas"],curl:["biceps","Curl con mochila cargada"],sup:["espalda","Superman en el piso"],bul:["cuad","Sentadilla búlgara en silla"],sen:["cuad","Sentadilla lenta (3 s bajando)"],pue:["femoral","Puente de glúteo a una pierna"],nor:["femoral","Curl nórdico asistido o con toalla deslizante"],tal:["gemelo","Elevación de talones a una pierna en escalón"],pla:["abs","Plancha"]};
+  const E={flex:["pecho","Flexiones (rodillas → normales → pies elevados)"],dom:["espalda","Dominadas en barra o remo invertido bajo una mesa"],pike:["hombro","Flexiones pike (hombros)"],fon:["triceps","Fondos entre dos sillas"],curl:["biceps","Curl con mochila cargada"],sup:["espalda","Superman en el piso"],bul:["cuad","Sentadilla búlgara en silla"],sen:["cuad","Sentadilla lenta (3 s bajando)"],pue:["gluteo","Puente de glúteo a una pierna"],nor:["femoral","Curl nórdico asistido o con toalla deslizante"],tal:["gemelo","Elevación de talones a una pierna en escalón"],pla:["abs","Plancha"]};
   const mk=k=>{const [m,n]=E[k];const reps=k==="pla"?"30–60 s":["sen","tal"].includes(k)?"15–25 reps":["dom","nor","pike"].includes(k)?"5–12 reps":"8–15 reps";return X(m,n,"3–4 series",reps+" (fallo técnico)","60–90 s",3)};
   const FA=["Cuerpo completo A",["flex","bul","dom","pue","pike","pla"]],FB=["Cuerpo completo B",["dom","sen","fon","nor","tal","sup"]],UA=["Torso",["flex","dom","pike","fon","curl","sup"]],LA=["Pierna y core",["bul","sen","pue","nor","tal","pla"]];
   const days=o.days<=3?[FA,FB,FA].slice(0,o.days):Array.from({length:o.days},(_,i)=>i%2?LA:UA);
@@ -1089,6 +1101,78 @@ function mCasa(o,P){
   P.scheme="3–4 series por ejercicio al fallo técnico · 60–90 s de descanso · pasa a la versión más difícil cuando superes el rango";
   P.weekNote="Solo necesitas el piso, dos sillas y una mochila. Una barra de dominadas de puerta es la mejor inversión.";
 }
+
+/* ===== Mujeres y prioridad muscular ===== */
+const F_SPLIT3=[["Torso: espalda, pecho y hombros",["espalda","hombro","pecho"]],["Glúteos y piernas",["gluteo","cuad","femoral","gemelo"]],["Glúteos, brazos y abdomen",["gluteo","triceps","biceps","abs"]]];
+const F_SPLIT5=[["Glúteos y cuádriceps",["gluteo","cuad","gemelo"]],["Espalda y hombros",["espalda","hombro"]],["Glúteos y femorales",["gluteo","femoral","abs"]],["Pecho y brazos",["pecho","triceps","biceps"]],["Pierna completa",["gluteo","cuad","femoral"]]];
+function splitFor(o,split){
+  if(o.sex!=="f")return split;
+  if(split===SPLITS[3])return F_SPLIT3;
+  if(split===SPLITS[5])return F_SPLIT5;
+  return split.map(([n,mus])=>[n,(mus.includes("cuad")||mus.includes("femoral"))&&!mus.includes("gluteo")?["gluteo",...mus]:mus]);
+}
+const LOCKED={w531:1,s5x5:1,dc:1,gvt:1};
+const CASA_PRI={pecho:"Flexiones con pausa de 2 s abajo",espalda:"Remo invertido bajo una mesa",hombro:"Elevaciones laterales con botellas de agua",biceps:"Curl con mochila cargada",triceps:"Flexiones diamante",cuad:"Sentadilla búlgara en silla",femoral:"Peso muerto rumano a una pierna con mochila",gemelo:"Elevación de talones a una pierna en escalón",gluteo:"Hip thrust apoyada en el sofá con mochila",abs:"Elevación de piernas acostado"};
+function womenAdjust(P,o){
+  const L=MUSN;
+  P.plan.forEach(d=>{
+    const legs=d.exs.some(e=>e.m===L.cuad||e.m===L.femoral), hasG=d.exs.some(e=>e.m===L.gluteo);
+    if(!legs||hasG||o.method==="circ")return;
+    const x=o.method==="casa"?X("gluteo","Hip thrust apoyada en el sofá con mochila","3–4 series","10–20 reps","60–90 s",3):X("gluteo","Hip thrust con barra","3 series","8–12 reps","90 s",3);
+    if(LOCKED[o.method])d.exs.push(x);else d.exs.splice(1,0,x);
+  });
+  P.notes.push("Plan para mujer: más trabajo de <b>glúteos y piernas</b> (hip thrust, sentadilla sumo, patadas en polea, abducciones) sin descuidar espalda y hombros, que mejoran postura y figura.");
+  P.notes.push("Las mujeres suelen recuperarse más rápido entre series y aguantar más repeticiones con el mismo % de su máximo: puedes descansar un poco menos en ejercicios aislados y usar el rango alto de reps. Entrenar pesado no te pondrá “voluminosa”: el músculo crece despacio y te dará forma.");
+  P.notes.push("Ciclo menstrual: los estudios muestran efectos pequeños y variables sobre el rendimiento (McNulty y col., 2020). Entrena normal y baja la intensidad solo si ese día te sientes mal. Si estás embarazada, consulta a tu médico antes de entrenar.");
+}
+function priEx(pm,used,o,day){
+  const inDay=new Set(day.exs.filter(e=>!e.fst).map(e=>e.n));
+  if(o.method==="casa"){const n=CASA_PRI[pm];return X(pm,used.has(n)?n+" (extra)":n,"3 series","8–20 reps (fallo técnico)","60–90 s",3,{tag:["pri","PRIORIDAD"],pri:true})}
+  const l=[...EX[pm].l.filter(isC),...EX[pm].l.filter(e=>!isC(e))];
+  const e=l.find(e=>!used.has(e.n)&&!inDay.has(e.n))||l.find(e=>!inDay.has(e.n));
+  if(!e)return null;
+  if(o.method==="circ")return X(pm,e.n,P_circ.sets,P_circ.reps,P_circ.rest,P_circ.ns,{tag:["pri","PRIORIDAD"],pri:true});
+  return X(pm,e.n,"3 series",pm==="gemelo"||pm==="gluteo"||pm==="abs"?"10–15 reps":"8–12 reps","60–90 s",3,{tag:["pri","PRIORIDAD"],pri:true});
+}
+let P_circ={};
+function trimDay(d,o,orig){
+  if(LOCKED[o.method])return;
+  while(d.exs.length>Math.max(orig,3)){
+    let k=-1;for(let i=d.exs.length-1;i>=0;i--){const e=d.exs[i];if(!e.pri&&!e.fst&&!e.ss&&!e.post&&d.exs.filter(x=>x.m===e.m).length>1){k=i;break}}
+    if(k<0)break;d.exs.splice(k,1);
+  }
+}
+function applyPriority(P,o){
+  const lags=(o.lags||[]).filter(x=>EX[x]);if(!lags.length)return;
+  const used=new Set();P.plan.forEach(d=>d.exs.forEach(e=>used.add(e.n)));
+  const orig=P.plan.map(d=>d.exs.length);
+  lags.forEach(pm=>{
+    const lab=MUSN[pm];
+    const has=P.plan.map(d=>d.exs.some(e=>e.m===lab));
+    P.plan.forEach((d,i)=>{
+      if(o.method==="circ"){const c=d.exs[0];P_circ={sets:c.sets,reps:c.reps,rest:c.rest,ns:c.ns};}
+      if(has[i]){
+        d.exs.forEach(e=>{if(e.m===lab){e.pri=true;if(!e.tag)e.tag=["pri","PRIORIDAD"]}});
+        const blk=d.exs.filter(e=>e.m===lab&&!e.fst);
+        if(!LOCKED[o.method]&&o.method!=="circ"){d.exs=[...blk,...d.exs.filter(e=>!(e.m===lab&&!e.fst))]}
+        if(blk.length<2){const x=priEx(pm,used,o,d);if(x){used.add(x.n);
+          if(LOCKED[o.method])d.exs.push(x);else{const pos=d.exs.filter(e=>e.m===lab&&!e.fst).length;d.exs.splice(o.method==="circ"?0:pos,0,x)}}}
+      }
+    });
+    let freq=has.filter(Boolean).length;
+    if(P.plan.length>=2&&freq<2){
+      const cand=P.plan.map((d,i)=>i).filter(i=>!has[i]).sort((a,b)=>{const dist=i=>Math.min(...has.map((h,j)=>h?Math.min(Math.abs(i-j),P.plan.length-Math.abs(i-j)):99));return dist(b)-dist(a)});
+      for(const i of cand){if(freq>=2)break;const x=priEx(pm,used,o,P.plan[i]);if(!x)continue;used.add(x.n);if(LOCKED[o.method])P.plan[i].exs.push(x);else P.plan[i].exs.unshift(x);freq++}
+    }
+  });
+  P.plan.forEach((d,i)=>trimDay(d,o,orig[i]+lags.length));
+  const names=lags.map(l=>MUSN[l]).join(" y ");
+  P.notes.unshift(LOCKED[o.method]?`Prioridad <b>${names}</b>: añadí ejercicios extra después de los básicos del método (no se tocan) y lo trabajas al menos 2 veces por semana.`:`Prioridad <b>${names}</b>: lo entrenas <b>primero</b> en la sesión (con más energía), con más series y <b>al menos 2 veces por semana</b>. Para no alargar el entreno quité algo de volumen de otros músculos.`);
+}
+let lagSel=[],trSex="m";
+const LAG_OPTS=[["gluteo","Glúteos"],["pecho","Pecho"],["espalda","Espalda"],["hombro","Hombros"],["biceps","Bíceps"],["triceps","Tríceps"],["cuad","Cuádriceps"],["femoral","Femorales"],["gemelo","Pantorrillas"],["abs","Abdomen"]];
+function renderLagChips(){$("#tLagChips").innerHTML=`<button type="button" class="chip ${lagSel.length?"":"on"}" data-lag="">Ninguno</button>`+LAG_OPTS.map(([k,n])=>`<button type="button" class="chip ${lagSel.includes(k)?"on":""}" data-lag="${k}">${n}${trSex==="f"&&k==="gluteo"&&!lagSel.includes(k)?" ⭐":""}</button>`).join("")}
+function setTrSex(v){trSex=v;$$("#tSexSeg button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));renderLagChips()}
 function recommend(o){
   let r=[];
   if(o.lvl==="pri"){r=["s5x5","evid"];if(o.goal==="bajar"||o.somato==="endo")r.push("circ")}
@@ -1099,9 +1183,10 @@ function recommend(o){
     if(o.lvl==="ava")r.unshift(o.somato==="endo"?"y3t":"dc");
   }
   if(o.min<=30)r.unshift(o.goal==="bajar"?"circ":"hd");
+  if(o.sex==="f"&&o.lvl!=="pri"&&!r.includes("evid"))r.splice(1,0,"evid");
   return [...new Set(r)].slice(0,3);
 }
-function readTrainForm(){return {somato:$("#tSomato").value,days:+$("#tDays").value,min:+$("#tMin").value,lvl:$("#tLvl").value,lag:$("#tLag").value,goal:$("#tGoal").value,method:$("#tMeth").value}}
+function readTrainForm(){return {somato:$("#tSomato").value,days:+$("#tDays").value,min:+$("#tMin").value,lvl:$("#tLvl").value,lags:lagSel.slice(),sex:trSex,goal:$("#tGoal").value,method:$("#tMeth").value}}
 function renderMethUI(){
   const o=readTrainForm(),M=METHODS[o.method],rec=recommend(o);
   $("#methRec").innerHTML=`<div class="small mut" style="margin:8px 0 4px">Recomendados para ti:</div><div class="chips">${rec.map(k=>`<button type="button" class="chip ${k===o.method?"on":""}" data-meth="${k}">${esc(METHODS[k].n)}</button>`).join("")}</div>`;
@@ -1119,7 +1204,7 @@ function renderPlan(P){
   const G=S.goal;
   const M=METHODS[P.o.method||"auto"];
   $("#trRes").innerHTML=`<div class="card"><div class="row between"><h2 style="margin:0">${esc(M.n)}</h2><span class="tag ${M.tag[0]}">${esc(M.tag[1])}</span></div>
-    <p class="small mut" style="margin:2px 0 8px">${esc(M.by)} · ${somN} · ${P.days} días · ${P.o.min} min</p>
+    <p class="small mut" style="margin:2px 0 8px">${esc(M.by)} · ${P.o.sex==="f"?"Mujer · ":""}${somN} · ${P.days} días · ${P.o.min} min</p>
     <div class="week">${weekHtml}</div>
     <p class="small mut" style="margin:4px 0 8px">Los días sin número son descanso total o cardio suave. ${P.weekNote||""}</p>
     ${P.notes.map(n=>`<div class="note small">${n}</div>`).join("")}
@@ -1154,7 +1239,7 @@ function renderQuiz(){
   $("#quiz").innerHTML=`<div class="small mut">Pregunta ${i+1} de 3</div><b>${QZ[i][0]}</b>`+QZ[i][1].map((t,j)=>`<button type="button" class="full sm" data-qa="${j}" style="margin-top:6px;text-align:left">${t}</button>`).join("");
   $$("#quiz [data-qa]").forEach(b=>b.onclick=()=>{qzA.push(+b.dataset.qa);renderQuiz()});
 }
-function fillTrain(){const o=S.train;if(!o)return;$("#tSomato").value=o.somato;$("#tDays").value=String(o.days);$("#tMin").value=String(o.min);$("#tLvl").value=o.lvl;$("#tLag").value=o.lag;$("#tGoal").value=o.goal;$("#tMeth").value=o.method||"auto";renderMethUI();renderPlan(genPlan(o))}
+function fillTrain(){const o=S.train;if(!o)return;$("#tSomato").value=o.somato;$("#tDays").value=String(o.days);$("#tMin").value=String(o.min);$("#tLvl").value=o.lvl;lagSel=o.lags||(o.lag?[o.lag]:[]);setTrSex(o.sex||(S.profile&&S.profile.sex)||"m");$("#tGoal").value=o.goal;$("#tMeth").value=o.method||"auto";renderMethUI();renderPlan(genPlan(o))}
 
 /* ================= REGISTRO DE FUERZA ================= */
 const exKey=e=>e.n+(e.fst?" · FST-7":"");
@@ -1265,7 +1350,9 @@ function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.sl
 window.addEventListener("hashchange",route);
 function renderAll(){renderLog();renderMenus()}
 try{if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{})}catch(e){}
-renderMethInfo();$("#trForm").addEventListener("change",renderMethUI);$("#methRec").addEventListener("click",e=>{const b=e.target.closest("[data-meth]");if(b){$("#tMeth").value=b.dataset.meth;renderMethUI()}});renderMethUI();
+renderMethInfo();setTrSex(S.profile&&S.profile.sex==="f"?"f":"m");$("#trForm").addEventListener("change",renderMethUI);
+$("#tSexSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){setTrSex(b.dataset.v);renderMethUI()}});
+$("#tLagChips").addEventListener("click",e=>{const b=e.target.closest("[data-lag]");if(!b)return;const k=b.dataset.lag;if(!k)lagSel=[];else if(lagSel.includes(k))lagSel=lagSel.filter(x=>x!==k);else{lagSel.push(k);if(lagSel.length>2)lagSel.shift()}renderLagChips();renderMethUI()});$("#methRec").addEventListener("click",e=>{const b=e.target.closest("[data-meth]");if(b){$("#tMeth").value=b.dataset.meth;renderMethUI()}});renderMethUI();
 setGoalSeg("bajar");fillCalc();fillTrain();renderAll();route();
 </script>
 </body>
