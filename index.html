@@ -7,23 +7,23 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NutriFuerza">
-<meta name="theme-color" content="#0e1411">
+<meta name="theme-color" content="#0a0a0b">
 <title>NutriFuerza EC</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <style>
 :root{
-  --bg:#0e1411;--card:#162019;--card2:#1d2a22;--line:#2a3a30;--txt:#e9f2ec;--mut:#94a89b;
-  --acc:#3ddc84;--acc2:#2bb36a;--p:#5aa9ff;--c:#ffb648;--f:#ff6b8a;--warn:#ffcc4d;--bad:#ff6b6b;
+  --bg:#0a0a0b;--card:#141416;--card2:#1d1d20;--line:#2a2a2e;--txt:#f4f4f5;--mut:#a1a1aa;
+  --acc:#e63946;--acc2:#b5161f;--good:#34d399;--p:#5aa9ff;--c:#ffb648;--f:#c084fc;--warn:#ffcc4d;--bad:#ff6b6b;
   --r:16px;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.4}
 body{padding-bottom:calc(76px + var(--safe-b))}
-header{position:sticky;top:0;z-index:20;background:rgba(14,20,17,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:calc(10px + var(--safe-t)) 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+header{position:sticky;top:0;z-index:20;background:rgba(10,10,11,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:calc(10px + var(--safe-t)) 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
 header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
-header .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--acc),#1a8f52);display:grid;place-items:center;font-weight:800;color:#06210f}
+header .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--acc),#7a0c12);display:grid;place-items:center;font-weight:800;color:#ffffff}
 header .sub{color:var(--mut);font-size:12px;margin-left:auto;text-align:right}
 main{max-width:720px;margin:0 auto;padding:14px 14px 20px}
 .view{display:none}.view.on{display:block}
@@ -42,7 +42,7 @@ select{background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),li
 input:focus,select:focus,textarea:focus{border-color:var(--acc)}
 textarea{min-height:90px;resize:vertical}
 button{font-family:inherit;font-size:15px;border:0;border-radius:12px;padding:11px 14px;background:var(--card2);color:var(--txt);border:1px solid var(--line);cursor:pointer}
-button.pri{background:var(--acc);color:#06210f;border-color:var(--acc);font-weight:700}
+button.pri{background:var(--acc);color:#ffffff;border-color:var(--acc);font-weight:700}
 button.ghost{background:transparent}
 button.sm{padding:7px 10px;font-size:13px;border-radius:10px}
 button.full{width:100%}
@@ -50,11 +50,11 @@ button:active{transform:scale(.98)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:0 0 auto;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card2);font-size:13px;color:var(--mut)}
-.chip.on{background:var(--acc);color:#06210f;border-color:var(--acc);font-weight:700}
+.chip.on{background:var(--acc);color:#ffffff;border-color:var(--acc);font-weight:700}
 .seg{display:flex;background:var(--card2);border-radius:12px;padding:3px;border:1px solid var(--line);margin-bottom:12px}
 .seg button{flex:1;border:0;background:transparent;padding:8px;font-size:14px;color:var(--mut);border-radius:10px}
-.seg button.on{background:var(--acc);color:#06210f;font-weight:700}
-.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(18,26,21,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + var(--safe-b))}
+.seg button.on{background:var(--acc);color:#ffffff;font-weight:700}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:rgba(16,16,18,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + var(--safe-b))}
 .tabbar a{flex:1;min-width:0;text-decoration:none;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:4px 0}
 .tabbar a svg{width:24px;height:24px}
 .tabbar a.on{color:var(--acc)}
@@ -97,7 +97,7 @@ button:active{transform:scale(.98)}
 .stat{background:var(--card2);border-radius:12px;padding:10px;text-align:center}
 .stat .v{font-size:20px;font-weight:800}
 .stat .l{font-size:11.5px;color:var(--mut)}
-.note{background:rgba(61,220,132,.08);border:1px solid rgba(61,220,132,.25);border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0}
+.note{background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.25);border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0}
 .note.w{background:rgba(255,204,77,.08);border-color:rgba(255,204,77,.3)}
 .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:99px;background:var(--card2);border:1px solid var(--line);color:var(--mut);margin-left:4px;vertical-align:middle}
 .tag.fst{background:rgba(255,107,138,.15);border-color:rgba(255,107,138,.5);color:#ff9fb3}
@@ -111,7 +111,7 @@ button:active{transform:scale(.98)}
 .ex .es{font-size:13px;color:var(--mut)}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0 4px}
 .week div{background:var(--card2);border-radius:10px;padding:7px 2px;text-align:center;font-size:11px;color:var(--mut)}
-.week div.t{background:rgba(61,220,132,.16);color:var(--acc);font-weight:700}
+.week div.t{background:rgba(230,57,70,.16);color:var(--acc);font-weight:700}
 details{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}
 summary{cursor:pointer;font-weight:600;padding:4px 0}
 ul{padding-left:18px;margin:6px 0}
@@ -119,30 +119,41 @@ li{margin:3px 0}
 .water{display:flex;gap:6px;flex-wrap:wrap}
 .water button{width:36px;height:42px;padding:0;font-size:18px}
 .water button.on{background:rgba(90,169,255,.25);border-color:var(--p)}
-.toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b));transform:translateX(-50%);background:var(--acc);color:#06210f;font-weight:700;padding:10px 16px;border-radius:12px;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b));transform:translateX(-50%);background:var(--acc);color:#ffffff;font-weight:700;padding:10px 16px;border-radius:12px;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
 .mealtitle{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
 .mi{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .mi:last-child{border-bottom:0}
 .hidden{display:none!important}
+.gate{position:fixed;inset:0;z-index:100;background:radial-gradient(120% 80% at 50% -10%,#3a0a0e 0%,#0a0a0b 60%);display:flex;align-items:center;justify-content:center;padding:calc(24px + var(--safe-t)) 22px calc(24px + var(--safe-b));overflow-y:auto}
+.gbox{width:100%;max-width:380px}
+.glogo{width:84px;height:84px;border-radius:24px;margin:0 auto 14px;background:linear-gradient(135deg,#ff4d5a,#7a0c12);display:grid;place-items:center;font-weight:800;font-size:44px;color:#fff;box-shadow:0 10px 40px rgba(230,57,70,.35)}
+.gbox h1{text-align:center;font-size:26px;margin:0}
+.gbox .gsub{text-align:center;color:var(--mut);margin:4px 0 22px;font-size:14px}
+.gbox input{margin-bottom:10px;padding:14px}
+.gbox .pri{padding:14px;font-size:16px}
+.glink{background:none;border:0;color:var(--mut);font-size:14px;padding:10px;width:100%;text-decoration:underline}
+.gmsg{min-height:20px;text-align:center;font-size:13.5px;color:var(--warn);margin-top:6px}
+.spin{width:34px;height:34px;border:3px solid #2a2a2e;border-top-color:var(--acc);border-radius:50%;margin:10px auto;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
 .exrow{display:flex;align-items:flex-start;gap:8px}
 .exrow .grow{flex:1;min-width:0}
 .last{font-size:12.5px;color:var(--mut);margin-top:3px}
 .last b{color:var(--txt)}
 .logbtn{flex:0 0 auto;font-size:13px;padding:6px 10px;border-radius:10px;border:1px solid var(--acc2);color:var(--acc);background:transparent;font-weight:700}
-.logbtn.done{background:rgba(61,220,132,.15)}
+.logbtn.done{background:rgba(230,57,70,.15)}
 .wf{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
 .setrow{display:grid;grid-template-columns:52px 1fr 1fr;gap:8px;align-items:center;margin-bottom:6px}
 .setrow input{padding:9px 10px}
 .setrow .sn{font-size:12.5px;color:var(--mut)}
 .trend{font-weight:700;font-size:12.5px;white-space:nowrap}
-.up{color:var(--acc)}.down{color:var(--bad)}.flat{color:var(--mut)}
+.up{color:var(--good)}.down{color:var(--bad)}.flat{color:var(--mut)}
 .pg{border-top:1px solid var(--line);padding:12px 0}
 .pg:first-child{border-top:0;padding-top:0}
 .pgh{display:flex;gap:10px;align-items:center;cursor:pointer}
 .chartwrap{position:relative;margin-top:10px}
 .chartwrap svg{width:100%;height:auto;display:block;overflow:visible}
-.tip{position:absolute;pointer-events:none;background:#0b100d;border:1px solid var(--line);border-radius:10px;padding:6px 9px;font-size:12px;white-space:nowrap;transform:translate(-50%,-110%);display:none;z-index:2}
+.tip{position:absolute;pointer-events:none;background:#050506;border:1px solid var(--line);border-radius:10px;padding:6px 9px;font-size:12px;white-space:nowrap;transform:translate(-50%,-110%);display:none;z-index:2}
 .htab{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
 .htab td,.htab th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
 .htab th{color:var(--mut);font-weight:600}
@@ -168,8 +179,8 @@ li{margin:3px 0}
     <div class="sum">
       <div class="ring">
         <svg width="128" height="128" viewBox="0 0 128 128" id="ringSvg">
-          <circle cx="64" cy="64" r="54" stroke="#1d2a22" stroke-width="12" fill="none"/>
-          <circle id="ringFg" cx="64" cy="64" r="54" stroke="#3ddc84" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+          <circle cx="64" cy="64" r="54" stroke="#1d1d20" stroke-width="12" fill="none"/>
+          <circle id="ringFg" cx="64" cy="64" r="54" stroke="#e63946" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
         </svg>
         <div class="in"><div class="big" id="kLeft">0</div><div class="small mut" id="kLeftLab">kcal restantes</div></div>
       </div>
@@ -402,6 +413,30 @@ li{margin:3px 0}
     </div>
   </div>
 </div>
+<!-- Pantalla de acceso -->
+<div class="gate hidden" id="gate">
+  <div class="gbox">
+    <div class="glogo">N</div>
+    <h1>NutriFuerza EC</h1>
+    <p class="gsub">Tu nutrición y entrenamiento, guardados en la nube</p>
+    <div id="gLoad"><div class="spin"></div><p class="gsub" id="gLoadTxt" style="margin:6px 0 0">Cargando…</p></div>
+    <form id="gForm" class="hidden" autocomplete="on">
+      <div class="seg" id="gSeg"><button type="button" data-m="in" class="on">Iniciar sesión</button><button type="button" data-m="up">Crear cuenta</button></div>
+      <input id="auEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="Correo electrónico" required>
+      <input id="auPass" type="password" autocomplete="current-password" placeholder="Contraseña" required>
+      <input id="auPass2" class="hidden" type="password" autocomplete="new-password" placeholder="Repite la contraseña">
+      <button class="pri full" type="submit" id="gBtn">Entrar</button>
+      <div class="gmsg" id="auMsg"></div>
+      <button type="button" class="glink" id="gReset">Olvidé mi contraseña</button>
+      <p class="small mut" style="text-align:center;margin-top:6px">Inicias sesión una sola vez: la app recordará tu cuenta en este dispositivo.</p>
+    </form>
+    <div id="gOff" class="hidden" style="text-align:center">
+      <p class="gsub" style="margin-bottom:14px">📴 Sin conexión. Necesitas internet para iniciar sesión la primera vez.</p>
+      <button class="pri full" id="gRetry">Reintentar</button>
+      <button class="glink" id="gLocal">Usar sin cuenta (solo en este teléfono)</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="firebase-config.js"></script>
@@ -579,7 +614,7 @@ function renderLog(){
   $("#kEaten").textContent=r0(T.k); $("#kGoal").textContent=r0(G.kcal);
   const C=2*Math.PI*54, pct=Math.min(T.k/G.kcal,1);
   const fg=$("#ringFg"); fg.setAttribute("stroke-dasharray",C); fg.setAttribute("stroke-dashoffset",C*(1-pct));
-  fg.setAttribute("stroke",left<0?"#ff6b6b":"#3ddc84");
+  fg.setAttribute("stroke",left<0?"#ffcc4d":"#e63946");
   const mb=(lab,v,g,col)=>`<div class="bar"><div class="lab"><span>${lab}</span><span><b>${r0(v)}</b> / ${r0(g)} g</span></div><div class="tr"><div class="fi" style="width:${Math.min(100,v/g*100)}%;background:${col}"></div></div></div>`;
   $("#macroBars").innerHTML=mb("Proteína",T.p,G.p,"var(--p)")+mb("Carbohidratos",T.c,G.c,"var(--c)")+mb("Grasa",T.f,G.f,"var(--f)");
   $("#goalHint").innerHTML=G.def?`<div class="note w">Meta de ejemplo (2000 kcal). <a href="#calculadora" style="color:var(--acc)">Calcula tu meta real →</a></div>`:"";
@@ -1319,17 +1354,17 @@ function renderProgress(){
 }
 function spark(h){if(h.length<2)return `<svg width="64" height="28"></svg>`;const v=h.map(w=>w.best),mn=Math.min(...v),mx=Math.max(...v),rg=mx-mn||1;
   const pts=v.map((y,i)=>`${(i/(v.length-1)*60+2).toFixed(1)},${(24-(y-mn)/rg*20).toFixed(1)}`).join(" ");
-  return `<svg width="64" height="28" viewBox="0 0 64 28" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="#3ddc84" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`}
+  return `<svg width="64" height="28" viewBox="0 0 64 28" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="#e63946" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`}
 function detail(key,h,u){
   const W=320,H=170,L=38,R=10,T=12,B=26,v=h.map(w=>w.best);
   let mn=Math.min(...v),mx=Math.max(...v);const pad=Math.max((mx-mn)*0.15,mx*0.05,1);mn=Math.max(0,mn-pad);mx=mx+pad;
   const X=i=>h.length===1?L+(W-L-R)/2:L+i/(h.length-1)*(W-L-R),Y=y=>T+(1-(y-mn)/(mx-mn))*(H-T-B);
-  let grid="";for(let g=0;g<=3;g++){const y=mn+(mx-mn)*g/3;grid+=`<line x1="${L}" x2="${W-R}" y1="${Y(y)}" y2="${Y(y)}" stroke="#2a3a30" stroke-width="1"/><text x="${L-6}" y="${Y(y)+4}" text-anchor="end" fill="#94a89b" font-size="10">${r0(y)}</text>`}
+  let grid="";for(let g=0;g<=3;g++){const y=mn+(mx-mn)*g/3;grid+=`<line x1="${L}" x2="${W-R}" y1="${Y(y)}" y2="${Y(y)}" stroke="#2a2a2e" stroke-width="1"/><text x="${L-6}" y="${Y(y)+4}" text-anchor="end" fill="#a1a1aa" font-size="10">${r0(y)}</text>`}
   const path=h.map((w,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(w.best).toFixed(1)}`).join("");
-  const dots=h.map((w,i)=>`<circle cx="${X(i)}" cy="${Y(w.best)}" r="4.5" fill="#3ddc84" stroke="#162019" stroke-width="2"/>`).join("");
+  const dots=h.map((w,i)=>`<circle cx="${X(i)}" cy="${Y(w.best)}" r="4.5" fill="#e63946" stroke="#141416" stroke-width="2"/>`).join("");
   const hits=h.map((w,i)=>{const x0=i?(X(i-1)+X(i))/2:L,x1=i<h.length-1?(X(i)+X(i+1))/2:W-R;return `<rect data-hi="${i}" x="${x0}" y="0" width="${Math.max(1,x1-x0)}" height="${H-B}" fill="transparent"/>`}).join("");
-  const xl=`<text x="${X(0)}" y="${H-8}" fill="#94a89b" font-size="10" text-anchor="${h.length===1?"middle":"start"}">${fmtD(h[0].date)}</text>`+(h.length>1?`<text x="${X(h.length-1)}" y="${H-8}" fill="#94a89b" font-size="10" text-anchor="end">${fmtD(h[h.length-1].date)}</text>`:"");
-  return `<div class="chartwrap" data-ck="${esc(key)}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fuerza estimada de ${esc(key)} en el tiempo">${grid}<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#3a4d41"/><text x="${L}" y="9" fill="#94a89b" font-size="10">${u==="kg"?"1RM estimado (kg)":"Reps"}</text><line class="xh" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#94a89b" stroke-dasharray="3 3" style="display:none"/><path d="${path}" fill="none" stroke="#3ddc84" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xl}${hits}</svg><div class="tip"></div></div>
+  const xl=`<text x="${X(0)}" y="${H-8}" fill="#a1a1aa" font-size="10" text-anchor="${h.length===1?"middle":"start"}">${fmtD(h[0].date)}</text>`+(h.length>1?`<text x="${X(h.length-1)}" y="${H-8}" fill="#a1a1aa" font-size="10" text-anchor="end">${fmtD(h[h.length-1].date)}</text>`:"");
+  return `<div class="chartwrap" data-ck="${esc(key)}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fuerza estimada de ${esc(key)} en el tiempo">${grid}<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#3a3a40"/><text x="${L}" y="9" fill="#a1a1aa" font-size="10">${u==="kg"?"1RM estimado (kg)":"Reps"}</text><line class="xh" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#a1a1aa" stroke-dasharray="3 3" style="display:none"/><path d="${path}" fill="none" stroke="#e63946" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${dots}${xl}${hits}</svg><div class="tip"></div></div>
    <table class="htab"><tr><th>Fecha</th><th>Series</th><th>1RM est.</th><th></th></tr>${h.slice().reverse().map(w=>`<tr><td>${fmtD(w.date)}</td><td>${w.sets.map(st=>st.kg>0?`${r1(st.kg)}×${st.reps}`:`${st.reps}`).join(", ")}</td><td><b>${r1(w.best)}</b></td><td><button class="x" data-wdel="${w.id}" aria-label="Borrar registro">✕</button></td></tr>`).join("")}</table>`;
 }
 function bindChart(){
@@ -1432,22 +1467,25 @@ async function cloudStart(){
     setCloudStatus("ok");
   }catch(e){console.warn("nube inicio",e);setCloudStatus(navigator.onLine?"error":"offline")}
 }
-function loadScript(src){return new Promise((ok,ko)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
+function loadScript(src){if(document.querySelector(`script[src="${src}"]`)&&window.firebase&&(src.includes("app-compat")||src.includes("auth")&&firebase.auth||src.includes("firestore")&&firebase.firestore))return Promise.resolve();return new Promise((ok,ko)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
 async function cloudInit(){
   const cfg=window.FIREBASE_CONFIG;
   if(!cfg||!cfg.apiKey){setCloudStatus("noconfig");return}
   try{
     for(const m of ["app","auth","firestore"])await loadScript(`https://www.gstatic.com/firebasejs/${FB_V}/firebase-${m}-compat.js`);
-    firebase.initializeApp(cfg);
+    if(!firebase.apps.length)firebase.initializeApp(cfg);
     Cloud.auth=firebase.auth();Cloud.fs=firebase.firestore();
     try{Cloud.fs.settings({experimentalAutoDetectLongPolling:true,merge:true})}catch(e){}
     Cloud.on=true;setCloudStatus("out");
-    Cloud.auth.onAuthStateChanged(u=>{Cloud.user=u;
-      if(u)cloudStart();else{if(Cloud.unsub){Cloud.unsub();Cloud.unsub=null}setCloudStatus("out")}});
+    Cloud.auth.onAuthStateChanged(async u=>{Cloud.user=u;
+      if(u){if(!$("#gate").classList.contains("hidden"))gate("load","Cargando tus datos…");await cloudStart();gate(null)}
+      else{if(Cloud.unsub){Cloud.unsub();Cloud.unsub=null}setCloudStatus("out");setGMode("in");gate("form")}});
     window.addEventListener("online",()=>{if(Cloud.user){Cloud.dirty.size?cloudPush():setCloudStatus("ok")}});
     window.addEventListener("offline",()=>{if(Cloud.user)setCloudStatus("offline")});
     document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&Cloud.dirty.size)cloudPush()});
-  }catch(e){console.warn("nube carga",e);setCloudStatus("loadfail")}
+  }catch(e){console.warn("nube carga",e);setCloudStatus("loadfail");
+    // Sin internet: si ya tenías sesión en este teléfono, entras igual; si no, se ofrece reintentar.
+    if(S.cloudUid)gate(null);else gate("off");}
 }
 const AUTH_ERR={"auth/invalid-email":"Ese correo no es válido.","auth/user-not-found":"No existe una cuenta con ese correo. Toca “Crear cuenta”.","auth/wrong-password":"Contraseña incorrecta.","auth/invalid-credential":"Correo o contraseña incorrectos.","auth/invalid-login-credentials":"Correo o contraseña incorrectos.","auth/email-already-in-use":"Ya existe una cuenta con ese correo. Toca “Entrar”.","auth/weak-password":"La contraseña debe tener al menos 6 caracteres.","auth/network-request-failed":"Sin conexión a internet.","auth/too-many-requests":"Demasiados intentos. Espera unos minutos.","auth/missing-password":"Escribe tu contraseña."};
 const authMsg=e=>AUTH_ERR[e&&e.code]||("No se pudo: "+((e&&e.message)||"error"));
@@ -1455,31 +1493,58 @@ function setCloudStatus(s){Cloud.status=s;renderCloud()}
 function renderCloud(){
   const box=$("#cloudBox");if(!box)return;
   const s=Cloud.status,u=Cloud.user;
-  const ST={noconfig:["⚪","La nube todavía no está activada en esta versión de la app. Tus datos se guardan en este teléfono."],loadfail:["⚠️","No pude conectar con la nube (¿sin internet?). Tus datos siguen guardados en este teléfono."],
-    out:["⚪","Inicia sesión para guardar todo en la nube y verlo en cualquier dispositivo."],sync:["🔄","Sincronizando…"],saving:["🔄","Guardando en la nube…"],
+  const ST={noconfig:["📱","Tus datos se guardan en este teléfono."],loadfail:["📴","Sin conexión con la nube. Tus datos siguen guardados en este teléfono y se subirán al reconectar."],
+    out:["📱","Estás usando la app sin cuenta: los datos solo están en este teléfono."],sync:["🔄","Sincronizando…"],saving:["🔄","Guardando en la nube…"],
     ok:["☁️","Todo guardado en la nube"+(Cloud.last?" · "+new Date(Cloud.last).toLocaleTimeString("es-EC",{hour:"2-digit",minute:"2-digit"}):"")],
     offline:["📴","Sin internet: se guarda en el teléfono y se sube a la nube al reconectar."],error:["⚠️","Error al guardar en la nube; lo reintentaré. Tus datos están a salvo en el teléfono."]}[s]||["⚪",""];
-  $("#cloudDot").textContent=u&&Cloud.on?(s==="ok"?"☁️":s==="offline"?"📴":"🔄"):"";
+  $("#cloudDot").textContent=u?(s==="ok"?"☁️":s==="offline"||s==="loadfail"?"📴":"🔄"):"";
   let html=`<div class="row" style="align-items:flex-start"><span style="font-size:20px">${ST[0]}</span><div class="small" style="flex:1">${ST[1]}${u?`<br><span class="mut">Cuenta: ${esc(u.email||"")}</span>`:""}</div></div>`;
-  if(Cloud.on&&!u)html+=`<form id="authForm" style="margin-top:10px"><input id="auEmail" type="email" autocomplete="email" placeholder="Correo" style="margin-bottom:8px"><input id="auPass" type="password" autocomplete="current-password" placeholder="Contraseña (mínimo 6 caracteres)">
-    <div class="row" style="margin-top:8px"><button class="pri sm" type="submit" data-au="in">Entrar</button><button class="sm" type="button" data-au="up">Crear cuenta</button><button class="sm ghost" type="button" data-au="reset" style="margin-left:auto">Olvidé mi contraseña</button></div><div id="auMsg" class="small wc" style="margin-top:6px"></div></form>`;
   if(u)html+=`<div class="row" style="margin-top:10px"><button class="sm" data-au="sync">Sincronizar ahora</button><button class="sm ghost" data-au="out" style="margin-left:auto">Cerrar sesión</button></div>`;
+  else if(Cloud.on)html+=`<button class="pri sm" data-au="login" style="margin-top:10px">Iniciar sesión o crear cuenta</button>`;
   box.innerHTML=html;
 }
-$("#cloudBox").addEventListener("submit",e=>{e.preventDefault();authDo("in")});
-$("#cloudBox").addEventListener("click",e=>{const b=e.target.closest("[data-au]");if(!b||b.type==="submit")return;e.preventDefault();authDo(b.dataset.au)});
+$("#cloudBox").addEventListener("click",e=>{const b=e.target.closest("[data-au]");if(b)authDo(b.dataset.au)});
+/* ---- pantalla de acceso ---- */
+let gMode="in";
+function gate(view,txt){ // view: null (ocultar) | "load" | "form" | "off"
+  const g=$("#gate");if(!view){g.classList.add("hidden");document.body.style.overflow="";return}
+  g.classList.remove("hidden");document.body.style.overflow="hidden";
+  $("#gLoad").classList.toggle("hidden",view!=="load");$("#gForm").classList.toggle("hidden",view!=="form");$("#gOff").classList.toggle("hidden",view!=="off");
+  if(txt)$("#gLoadTxt").textContent=txt;
+}
+function setGMode(m){gMode=m;$$("#gSeg button").forEach(b=>b.classList.toggle("on",b.dataset.m===m));
+  $("#gBtn").textContent=m==="in"?"Entrar":"Crear mi cuenta";$("#auPass2").classList.toggle("hidden",m==="in");
+  $("#auPass").setAttribute("autocomplete",m==="in"?"current-password":"new-password");$("#auPass").placeholder=m==="in"?"Contraseña":"Contraseña (mínimo 6 caracteres)";$("#auMsg").textContent=""}
+$("#gSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setGMode(b.dataset.m)});
+$("#gForm").addEventListener("submit",e=>{e.preventDefault();authDo(gMode)});
+$("#gReset").onclick=()=>authDo("reset");
+$("#gRetry").onclick=()=>{gate("load","Conectando…");cloudInit()};
+$("#gLocal").onclick=()=>{gate(null);setCloudStatus("out")};
 async function authDo(a){
-  const msg=t=>{const m=$("#auMsg");if(m)m.textContent=t};
-  const em=($("#auEmail")||{}).value,pw=($("#auPass")||{}).value;
+  const msg=t=>{$("#auMsg").textContent=t};
+  const em=$("#auEmail").value.trim(),pw=$("#auPass").value;
   try{
-    if(a==="in"){msg("Entrando…");await Cloud.auth.signInWithEmailAndPassword((em||"").trim(),pw||"");toast("Sesión iniciada")}
-    else if(a==="up"){msg("Creando cuenta…");await Cloud.auth.createUserWithEmailAndPassword((em||"").trim(),pw||"");toast("Cuenta creada: tus datos se guardan en la nube")}
-    else if(a==="reset"){if(!em)return msg("Escribe tu correo arriba y vuelve a tocar “Olvidé mi contraseña”.");await Cloud.auth.sendPasswordResetEmail(em.trim());msg("Te envié un correo para cambiar tu contraseña (revisa también spam).")}
-    else if(a==="out"){if(Cloud.dirty.size)await cloudPush();await Cloud.auth.signOut();toast("Sesión cerrada")}
+    if(a==="login"){setGMode("in");gate("form");return}
+    if(a==="in"||a==="up"){
+      if(!em||!pw)return msg("Escribe tu correo y contraseña.");
+      if(a==="up"&&pw!==$("#auPass2").value)return msg("Las contraseñas no coinciden.");
+      $("#gBtn").disabled=true;msg("");gate("form");
+      if(a==="in")await Cloud.auth.signInWithEmailAndPassword(em,pw);else await Cloud.auth.createUserWithEmailAndPassword(em,pw);
+      $("#auPass").value="";$("#auPass2").value="";
+    }
+    else if(a==="reset"){if(!em)return msg("Escribe tu correo arriba y vuelve a tocar “Olvidé mi contraseña”.");await Cloud.auth.sendPasswordResetEmail(em);msg("Te envié un correo para cambiar tu contraseña (revisa también spam).")}
+    else if(a==="out"){
+      if(Cloud.dirty.size)await cloudPush();
+      if(Cloud.dirty.size)return toast("Aún no se guardó todo en la nube. Conéctate a internet e inténtalo de nuevo.");
+      await Cloud.auth.signOut();
+      // Se borran los datos de este teléfono (ya están en la nube) para que otra cuenta no los mezcle.
+      S={log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[]};saveLocal();cloudBaseline();renderAll();
+      toast("Sesión cerrada");
+    }
     else if(a==="sync"){await cloudStart();toast("Sincronizado")}
   }catch(e){msg(authMsg(e))}
+  finally{const b=$("#gBtn");if(b)b.disabled=false}
 }
-
 /* ================= NAVEGACIÓN ================= */
 const VIEWS=["registro","menus","calculadora","entreno","progreso"];
 function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"registro";
@@ -1492,7 +1557,9 @@ renderMethInfo();setTrSex(S.profile&&S.profile.sex==="f"?"f":"m");$("#trForm").a
 $("#tSexSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){setTrSex(b.dataset.v);renderMethUI()}});
 $("#tLagChips").addEventListener("click",e=>{const b=e.target.closest("[data-lag]");if(!b)return;const k=b.dataset.lag;if(!k)lagSel=[];else if(lagSel.includes(k))lagSel=lagSel.filter(x=>x!==k);else{lagSel.push(k);if(lagSel.length>2)lagSel.shift()}renderLagChips();renderMethUI()});$("#methRec").addEventListener("click",e=>{const b=e.target.closest("[data-meth]");if(b){$("#tMeth").value=b.dataset.meth;renderMethUI()}});renderMethUI();
 setGoalSeg("bajar");fillCalc();fillTrain();renderAll();route();
-cloudBaseline();renderCloud();cloudInit();
+cloudBaseline();renderCloud();
+if(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey){if(!S.cloudUid)gate("load","Cargando…")}
+cloudInit();
 </script>
 </body>
 </html>
