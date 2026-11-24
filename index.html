@@ -125,6 +125,20 @@ li{margin:3px 0}
 .mi{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .mi:last-child{border-bottom:0}
 .hidden{display:none!important}
+.goalgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.goalgrid button{padding:9px 4px;font-size:12.5px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mut)}
+.goalgrid button span{font-size:19px}
+.goalgrid button.on{background:rgba(230,57,70,.15);border-color:var(--acc);color:var(--txt);font-weight:700}
+.check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--txt)}
+.check input{width:20px;height:20px;accent-color:var(--acc);-webkit-appearance:checkbox;appearance:checkbox;padding:0}
+.supp{border-top:1px solid var(--line);padding:9px 0}
+.srow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.srow:first-of-type{border-top:0}
+.srow .grow{flex:1;min-width:0}
+.sbtn{min-width:40px;height:36px;padding:0 10px;border-radius:10px;font-weight:700}
+.sbtn.on{background:rgba(52,211,153,.15);border-color:var(--good);color:var(--good)}
+.onb a{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);color:var(--txt);text-decoration:none}
+.onb a .go{margin-left:auto;color:var(--acc);font-weight:700}
 .figbtn{flex:0 0 auto;width:66px;height:48px;padding:2px;background:#111113;border:1px solid var(--line);border-radius:10px}
 .figbtn svg{width:100%;height:100%;display:block}
 .bd{stroke:#e4e4e7;stroke-width:6;stroke-linecap:round}.hd{fill:#e4e4e7}
@@ -182,6 +196,7 @@ li{margin:3px 0}
 <main>
 <!-- ============ REGISTRO ============ -->
 <section class="view" id="v-registro">
+  <div id="onb"></div>
   <div class="datebar">
     <button id="dPrev" aria-label="Día anterior">‹</button>
     <div><div class="d" id="dLabel">Hoy</div><div class="small mut" id="dSub" style="text-align:center"></div></div>
@@ -205,6 +220,7 @@ li{margin:3px 0}
     <div id="goalHint"></div>
   </div>
   <div id="meals"></div>
+  <div class="card hidden" id="suppCard"></div>
   <div class="card">
     <div class="row between"><h2 style="margin:0">Agua</h2><span class="small mut" id="waterTxt"></span></div>
     <div class="water" id="water" style="margin-top:8px"></div>
@@ -257,8 +273,9 @@ li{margin:3px 0}
 <!-- ============ CALCULADORA ============ -->
 <section class="view" id="v-calculadora">
   <div class="card">
-    <h2>Calculadora de calorías</h2>
-    <p class="small mut" style="margin-top:0">Calcula tu gasto diario y tu meta para bajar grasa (déficit), mantener o subir de peso.</p>
+    <h2>Calculadora de calorías y dieta</h2>
+    <div id="cSum" class="hidden"></div>
+    <p class="small mut" id="cIntro" style="margin-top:0">Tus datos, tu objetivo, tu tipo de dieta y tus suplementos. Con eso calculo tus calorías, macros, agua y plan de suplementos.</p>
     <form id="calcForm">
       <div class="grid2">
         <div><label>Sexo</label><select id="cSex"><option value="m">Hombre</option><option value="f">Mujer</option></select></div>
@@ -277,23 +294,38 @@ li{margin:3px 0}
           <option value="1.9">Muy alto (trabajo pesado + entreno diario)</option>
         </select>
       </div>
-      <div style="margin-top:10px"><label>¿Qué quieres lograr?</label>
-        <div class="seg" id="cGoalSeg">
-          <button type="button" data-v="bajar" class="on">Bajar</button>
-          <button type="button" data-v="recomp">Recomp.</button>
-          <button type="button" data-v="mantener">Mantener</button>
-          <button type="button" data-v="subir">Subir</button>
-        </div>
+      <div style="margin-top:12px"><label>¿Qué quieres lograr?</label>
+        <div class="goalgrid" id="cGoalSeg"></div>
+        <p class="small mut" id="cGoalDesc" style="margin:6px 0 0"></p>
       </div>
-      <div id="cRateWrap"><label>Velocidad</label><select id="cRate"></select></div>
+      <div id="cRateWrap" style="margin-top:10px"><label>Velocidad</label><select id="cRate"></select></div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label>Tipo de dieta</label>
+          <select id="cDiet">
+            <option value="balanceada">Balanceada</option>
+            <option value="altaprot">Alta en proteína</option>
+            <option value="lowcarb">Baja en carbohidratos</option>
+            <option value="keto">Keto (casi sin carbos)</option>
+            <option value="vegetariana">Vegetariana</option>
+            <option value="vegana">Vegana</option>
+          </select></div>
+        <div><label>Comidas al día</label>
+          <select id="cMeals"><option value="3">3 comidas</option><option value="4">4 comidas</option><option value="5" selected>5 comidas</option><option value="6">6 comidas</option></select></div>
+      </div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="cFast"> Hago ayuno intermitente 16:8 (como en una ventana de 8 horas)</label>
       <div style="margin-top:10px"><label>Reparto de macros</label>
         <select id="cMode">
           <option value="hibrido" selected>Híbrido: Mentzer + proteína según estudios (recomendado)</option>
           <option value="mentzer">Mike Mentzer clásico: 60% carbos / 25% proteína / 15% grasa</option>
-          <option value="evidencia">Basado en estudios: proteína alta (1.6–2.2 g/kg)</option>
+          <option value="evidencia">Basado en estudios: proteína alta (1.6–2.4 g/kg)</option>
         </select>
       </div>
-      <button class="pri full" type="submit" style="margin-top:14px">Calcular</button>
+      <div style="margin-top:12px"><label>Suplementos que tomas o quieres tomar</label>
+        <div class="chips" id="cSupps" style="flex-wrap:wrap"></div>
+        <div id="cWheyWrap" class="hidden" style="margin-top:8px"><label>Tipo de proteína en polvo</label>
+          <select id="cWhey"><option value="conc">Whey concentrada (la más económica)</option><option value="iso">Whey aislada (casi sin lactosa)</option><option value="veg">Proteína vegetal (vegana)</option></select></div>
+      </div>
+      <button class="pri full" type="submit" style="margin-top:14px">Calcular mi plan</button>
     </form>
   </div>
   <div id="calcRes"></div>
@@ -316,7 +348,7 @@ li{margin:3px 0}
         <li><b>Grasa</b> mínima de ~0.6 g/kg para mantener la salud hormonal.</li>
       </ul>
     </details>
-    <p class="small mut">El modo <b>Híbrido</b> usa el reparto de Mentzer pero garantiza al menos 1.6 g/kg de proteína (2.0 g/kg en déficit) y 0.6 g/kg de grasa.</p>
+    <p class="small mut">El modo <b>Híbrido</b> usa el reparto de Mentzer pero garantiza al menos 1.6 g/kg de proteína (2.0–2.2 g/kg en déficit o al definir) y 0.6 g/kg de grasa.</p>
     <p class="small mut">Esto es orientativo, no reemplaza a un nutricionista o médico, sobre todo si tienes alguna condición de salud, estás embarazada o eres menor de edad.</p>
   </div>
 </section>
@@ -544,6 +576,20 @@ const RAW = [
  ["Cerveza",43,0.5,3.6,0,"ml",330,"Bebidas",0.40,"cerveza pilsener club"],
  ["Batido de proteína (1 scoop en agua)",120,24,3,1.5,"unidad",1,"Bebidas",1.00,"proteina whey batido scoop"],
  ["Agua",0,0,0,0,"ml",250,"Bebidas",0,"agua"],
+ ["Proteína whey concentrada (1 scoop 30 g)",120,24,3,1.5,"unidad",1,"Suplementos",0.90,"whey proteina scoop batido concentrada"],
+ ["Proteína whey aislada (1 scoop 30 g)",110,26,1,0.5,"unidad",1,"Suplementos",1.10,"whey isolate aislada proteina scoop"],
+ ["Proteína vegetal (1 scoop 30 g)",115,21,4,2,"unidad",1,"Suplementos",1.10,"proteina vegana vegetal arveja scoop"],
+ ["Caseína (1 scoop 33 g)",120,24,3,1,"unidad",1,"Suplementos",1.10,"caseina proteina noche"],
+ ["Ganador de masa (1 servicio 150 g)",570,30,100,5,"unidad",1,"Suplementos",2.00,"ganador gainer masa mass"],
+ ["Batido casero para subir de peso",750,40,95,22,"unidad",1,"Suplementos",1.40,"batido ganador casero avena guineo"],
+ ["Barra de proteína",210,20,22,7,"unidad",1,"Suplementos",2.00,"barra proteina"],
+ ["Creatina monohidratada (5 g)",0,0,0,0,"unidad",1,"Suplementos",0.15,"creatina"],
+ ["Leche de soya",40,3.3,2,1.8,"ml",250,"Lácteos y huevos",0.25,"leche soya vegana"],
+ ["Yogur de soya",66,3.5,7,2.5,"g",150,"Lácteos y huevos",0.45,"yogur soya vegano"],
+ ["Yogur griego natural",97,9,4,5,"g",150,"Lácteos y huevos",0.60,"yogur griego"],
+ ["Tofu",76,8,1.9,4.8,"g",100,"Menestras",0.60,"tofu soya"],
+ ["Arroz con menestra y huevo frito",620,22,95,16,"plato",1,"Platos ecuatorianos",2.00,"arroz menestra huevo"],
+ ["Arroz con menestra y maduro",600,16,110,10,"plato",1,"Platos ecuatorianos",1.75,"arroz menestra maduro vegano"],
  // Platos ecuatorianos (por plato/unidad, porción típica)
  ["Bolón de verde con queso",450,10,62,18,"unidad",1,"Platos ecuatorianos",1.25,"bolon verde queso"],
  ["Bolón mixto (queso y chicharrón)",550,15,62,27,"unidad",1,"Platos ecuatorianos",1.75,"bolon mixto chicharron"],
@@ -582,12 +628,14 @@ const RAW = [
  ["Choclo con queso",280,10,35,11,"unidad",1,"Platos ecuatorianos",1.00,"choclo queso"]
 ];
 const DB = RAW.map(r=>({n:r[0],k:r[1],p:r[2],c:r[3],f:r[4],u:r[5],porc:r[6],cat:r[7],price:r[8],kw:r[9]||""}));
-const MEALS = [["des","Desayuno"],["mm","Media mañana"],["alm","Almuerzo"],["mt","Media tarde"],["cen","Cena"]];
+const MEALS = [["des","Desayuno"],["mm","Media mañana"],["alm","Almuerzo"],["mt","Media tarde"],["cen","Cena"],["noc","Antes de dormir"]];
+function activeIds(){const n=(S.profile&&S.profile.meals)||5;return {3:["des","alm","cen"],4:["des","alm","mt","cen"],5:["des","mm","alm","mt","cen"],6:["des","mm","alm","mt","cen","noc"]}[n]||["des","mm","alm","mt","cen"]}
+function activeMeals(){const a=activeIds();return MEALS.filter(([id])=>a.includes(id))}
 
 /* ================= ESTADO ================= */
 const KEY="nutrifuerza_v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
-let S = Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[]}, load());
+let S = Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{}}, load());
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function save(){cloudTrack();saveLocal()}
 
@@ -631,14 +679,16 @@ function renderLog(){
   const mb=(lab,v,g,col)=>`<div class="bar"><div class="lab"><span>${lab}</span><span><b>${r0(v)}</b> / ${r0(g)} g</span></div><div class="tr"><div class="fi" style="width:${Math.min(100,v/g*100)}%;background:${col}"></div></div></div>`;
   $("#macroBars").innerHTML=mb("Proteína",T.p,G.p,"var(--p)")+mb("Carbohidratos",T.c,G.c,"var(--c)")+mb("Grasa",T.f,G.f,"var(--f)");
   $("#goalHint").innerHTML=G.def?`<div class="note w">Meta de ejemplo (2000 kcal). <a href="#calculadora" style="color:var(--acc)">Calcula tu meta real →</a></div>`:"";
-  $("#meals").innerHTML=MEALS.map(([id,name])=>{
+  const act=activeIds();
+  $("#meals").innerHTML=MEALS.filter(([id])=>act.includes(id)||L.some(e=>e.meal===id)).map(([id,name])=>{
     const items=L.filter(e=>e.meal===id), t=totals(items);
     return `<div class="meal"><div class="mh"><div><b>${name}</b><span class="k">${items.length?r0(t.k)+" kcal":""}</span></div><button class="add" data-add="${id}">+ Agregar</button></div>`+
       items.map(e=>`<div class="item"><div class="nm"><div>${esc(e.n)}</div><div class="small mut">${esc(e.q)} · <span class="pc">P ${r0(e.p)}</span> · <span class="cc">C ${r0(e.c)}</span> · <span class="fc">G ${r0(e.f)}</span></div></div><div class="kc">${r0(e.k)}</div><button class="x" data-del="${e.id}" aria-label="Eliminar">✕</button></div>`).join("")+`</div>`;
   }).join("");
-  const w=S.water[dkey(cur)]||0;
-  $("#water").innerHTML=Array.from({length:10},(_,i)=>`<button data-w="${i+1}" class="${i<w?"on":""}">💧</button>`).join("");
-  $("#waterTxt").textContent=`${w} vasos (${(w*0.25).toFixed(2)} L)`;
+  const w=S.water[dkey(cur)]||0,wg=S.profile?calc(S.profile).glasses:8;
+  $("#water").innerHTML=Array.from({length:Math.min(16,Math.max(wg,w+1,8))},(_,i)=>`<button data-w="${i+1}" class="${i<w?"on":""}" style="${i>=wg?"opacity:.5":""}">💧</button>`).join("");
+  $("#waterTxt").textContent=`${w} de ${wg} vasos (${(w*0.25).toFixed(2)} / ${(wg*0.25).toFixed(2)} L)`;
+  renderSupps();renderOnb();
   $("#hdrsub").innerHTML=`${r0(T.k)} / ${r0(G.kcal)} kcal`;
 }
 $("#meals").addEventListener("click",e=>{
@@ -648,18 +698,50 @@ $("#meals").addEventListener("click",e=>{
 $("#water").addEventListener("click",e=>{const b=e.target.closest("[data-w]");if(!b)return;const k=dkey(cur),v=+b.dataset.w;S.water[k]=(S.water[k]===v?v-1:v);save();renderLog()});
 $("#dPrev").onclick=()=>{cur.setDate(cur.getDate()-1);renderLog()};
 $("#dNext").onclick=()=>{cur.setDate(cur.getDate()+1);renderLog()};
-function addEntry(f,q,meal,date){
+function addEntry(f,q,meal,date,extra){
   const n=nutr(f,q), k=date||dkey(cur);
-  (S.log[k]||(S.log[k]=[])).push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),meal,n:f.n,q:qtyLabel(f,q),k:n.k,p:n.p,c:n.c,f:n.f});
+  (S.log[k]||(S.log[k]=[])).push(Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),meal,n:f.n,q:qtyLabel(f,q),k:n.k,p:n.p,c:n.c,f:n.f},extra||{}));
 }
+/* ---- suplementos del día y bienvenida ---- */
+const POWDER={caseina:"Caseína (1 scoop 33 g)",gainer:"Ganador de masa (1 servicio 150 g)"};
+function mealByHour(){const h=new Date().getHours(),act=activeIds(),order=["des","mm","alm","mt","cen","noc"];
+  const pref=h<10?"des":h<12?"mm":h<15?"alm":h<18?"mt":h<21?"cen":"noc";if(act.includes(pref))return pref;
+  const i=order.indexOf(pref);for(let d=1;d<6;d++){if(act.includes(order[i-d]))return order[i-d];if(act.includes(order[i+d]))return order[i+d]}return "alm"}
+function renderSupps(){
+  const p=S.profile,box=$("#suppCard"),list=((p&&p.supps)||[]).slice();
+  if(p&&p.diet==="vegana")list.push("b12");
+  if(!list.length){box.classList.add("hidden");return}
+  box.classList.remove("hidden");
+  const k=dkey(cur),L=dayLog(),done=(S.suppLog&&S.suppLog[k])||{};
+  const plan={};suppPlan(p,calc(p)).forEach(x=>plan[x[0]]=x);
+  const rows=list.map(key=>{const nm=key==="b12"?"💉 Vitamina B12":(SUPPS[key].i+" "+(key==="whey"?{conc:"Whey concentrada",iso:"Whey aislada",veg:"Proteína vegetal"}[p.whey||"conc"]:SUPPS[key].n));
+    const dose=plan[key]?plan[key][2]:"";
+    if(key==="whey"||POWDER[key]){const c=L.filter(e=>e.supp===key).length;
+      return `<div class="srow"><div class="grow"><b>${nm}</b><div class="small mut">${dose}${c?` · hoy: <b style="color:var(--good)">${c} ${key==="gainer"?"servicio":"scoop"}${c>1?"s":""}</b>`:""}</div></div>${c?`<button class="sbtn" data-sm="${key}" aria-label="Quitar uno">−</button>`:""}<button class="sbtn ${c?"on":""}" data-sp2="${key}">+1</button></div>`}
+    return `<div class="srow"><div class="grow"><b>${nm}</b><div class="small mut">${dose}</div></div><button class="sbtn ${done[key]?"on":""}" data-st="${key}">${done[key]?"✓ Tomado":"Tomar"}</button></div>`}).join("");
+  box.innerHTML=`<div class="row between"><h2 style="margin:0">Suplementos de hoy</h2><a href="#calculadora" class="small" style="color:var(--mut)">Cambiar</a></div><p class="small mut" style="margin:2px 0 4px">Los batidos de proteína se suman solos a tus calorías.</p>${rows}`;
+}
+$("#suppCard").addEventListener("click",e=>{
+  const k=dkey(cur),p=S.profile;
+  const a=e.target.closest("[data-sp2]");if(a){const key=a.dataset.sp2;const f=findFood(key==="whey"?WHEY_FOOD[p.whey||"conc"]:POWDER[key]);addEntry(f,1,mealByHour(),null,{supp:key});save();renderLog();toast(`+${r0(f.k)} kcal · ${r0(f.p)} g de proteína`);return}
+  const m=e.target.closest("[data-sm]");if(m){const key=m.dataset.sm,L=dayLog();for(let i=L.length-1;i>=0;i--)if(L[i].supp===key){L.splice(i,1);break}save();renderLog();return}
+  const t=e.target.closest("[data-st]");if(t){S.suppLog=S.suppLog||{};const d=S.suppLog[k]=S.suppLog[k]||{};d[t.dataset.st]=!d[t.dataset.st];save();renderLog()}
+});
+function renderOnb(){
+  const box=$("#onb");if(S.profile&&S.train){box.innerHTML="";return}
+  box.innerHTML=`<div class="card onb" style="border-color:var(--acc2)"><h2>👋 ¡Bienvenido/a a NutriFuerza!</h2><p class="small mut" style="margin:0 0 4px">Configura tu cuenta en 2 pasos para que todo se ajuste a ti:</p>
+    <a href="#calculadora"><span style="font-size:20px">${S.profile?"✅":"1️⃣"}</span><span><b>Tu dieta</b><br><span class="small mut">Calorías, objetivo (bajar, definir, volumen…), tipo de dieta y suplementos</span></span><span class="go">${S.profile?"":"→"}</span></a>
+    <a href="#entreno"><span style="font-size:20px">${S.train?"✅":"2️⃣"}</span><span><b>Tu entrenamiento</b><br><span class="small mut">Tipo de cuerpo, días de gym y método</span></span><span class="go">${S.train?"":"→"}</span></a></div>`;
+}
+
 $("#bkCopy").onclick=async()=>{const t=JSON.stringify(S);try{await navigator.clipboard.writeText(t);toast("Respaldo copiado")}catch(e){$("#bkBox").classList.remove("hidden");$("#bkTxt").value=t;$("#bkTxt").select();toast("Copia el texto manualmente")}};
 $("#bkShow").onclick=()=>{$("#bkBox").classList.toggle("hidden")};
-$("#bkLoad").onclick=()=>{try{const o=JSON.parse($("#bkTxt").value);if(typeof o!=="object"||!o.log)throw 0;S=Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[]},o);save();renderAll();toast("Datos restaurados")}catch(e){toast("Respaldo no válido")}};
+$("#bkLoad").onclick=()=>{try{const o=JSON.parse($("#bkTxt").value);if(typeof o!=="object"||!o.log)throw 0;S=Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{}},o);save();renderAll();toast("Datos restaurados")}catch(e){toast("Respaldo no válido")}};
 
 /* ================= HOJA AGREGAR ================= */
 let selFood=null;
 function openSheet(meal){
-  $("#shMeal").innerHTML=MEALS.map(([id,n])=>`<option value="${id}" ${id===meal?"selected":""}>${n}</option>`).join("");
+  $("#shMeal").innerHTML=MEALS.filter(([id])=>activeIds().includes(id)||id===meal).map(([id,n])=>`<option value="${id}" ${id===meal?"selected":""}>${n}</option>`).join("");
   selFood=null;$("#selBox").innerHTML="";$("#q").value="";catSel="";
   showPane("buscar");renderCats();search();
   $("#sheet").classList.remove("hidden");document.body.style.overflow="hidden";
@@ -781,18 +863,36 @@ function scaleQ(f,q,fac){
   if(f.u==="unidad")return Math.max(1,Math.round(q*fac));
   return Math.max(0.5,Math.round(q*fac*2)/2);
 }
+const SUB_VEG={"Pechuga de pollo cocida":["Chochos desamargados",1.5],"Hígado de res cocido":["Chochos desamargados",1.5],"Tilapia cocida":["Chochos desamargados",1.2],"Atún en agua (escurrido)":["Chochos desamargados",1.3],"Sardina en salsa de tomate":["Chochos desamargados",1.2],"Encebollado":["Cevichocho",1],"Seco de pollo con arroz y maduro":["Arroz con menestra y huevo frito",1]};
+const SUB_VGN={"Huevo entero":["Tofu",50],"Queso fresco":["Aguacate",1],"Leche entera":["Leche de soya",1],"Yogur natural":["Yogur de soya",1],"Humita":["Choclo cocido",150],"Bolón de verde con queso":["Verde cocido",200],"Locro de papa":["Sopa de quinua",1],"Arroz con menestra y huevo frito":["Arroz con menestra y maduro",1]};
+function dietDay(day){
+  const d=(S.profile&&S.profile.diet)||"balanceada",act=activeIds(),m={};
+  const MERGE={mm:"des",mt:"alm",noc:"cen"};
+  for(const id in day.m){
+    const tgt=act.includes(id)?id:(act.includes(MERGE[id])?MERGE[id]:act[0]);
+    day.m[id].forEach(([n,q])=>{
+      if(d==="vegetariana"||d==="vegana"){if(SUB_VEG[n]){q*=SUB_VEG[n][1];n=SUB_VEG[n][0]}if(d==="vegana"&&SUB_VGN[n]){q*=SUB_VGN[n][1];n=SUB_VGN[n][0]}}
+      const f=findFood(n);
+      if((d==="lowcarb"||d==="keto")&&f&&(f.cat==="Granos y tubérculos"||f.cat==="Frutas"||f.cat==="Panadería"))q*=d==="keto"?(f.cat==="Frutas"?0.3:0.15):0.5;
+      (m[tgt]=m[tgt]||[]).push([n,q]);
+    });
+  }
+  if(d==="keto")["alm","cen"].forEach(id=>{if(m[id])m[id].push(["Aguacate",70])});
+  return {d:day.d,m};
+}
 function scaledDay(day){
+  day=dietDay(day);
   const fac=Math.min(1.8,Math.max(0.6,goal().kcal/dayBase(day)));
   const out={};for(const id in day.m)out[id]=day.m[id].map(([n,q])=>{const f=findFood(n);return [f,scaleQ(f,q,fac)]});
   return {fac,meals:out};
 }
 function renderMenus(){
   const G=goal();
-  $("#menuGoal").innerHTML=G.def?`Usando una meta de ejemplo de <b>2000 kcal</b>. <a href="#calculadora" style="color:var(--acc)">Calcula la tuya</a> y el menú se ajusta solo.`:`Ajustado a tu meta de <b>${r0(G.kcal)} kcal</b> (${{bajar:"bajar grasa",subir:"subir de peso",mantener:"mantener",recomp:"recomposición"}[S.profile&&S.profile.goal]||"tu objetivo"}).`;
+  $("#menuGoal").innerHTML=G.def?`Usando una meta de ejemplo de <b>2000 kcal</b>. <a href="#calculadora" style="color:var(--acc)">Calcula la tuya</a> y el menú se ajusta solo.`:`Ajustado a tu meta de <b>${r0(G.kcal)} kcal</b> (${S.profile&&GOALS[S.profile.goal]?GOALS[S.profile.goal].n.toLowerCase():"tu objetivo"}), ${activeIds().length} comidas al día${S.profile&&S.profile.diet&&S.profile.diet!=="balanceada"?`, dieta <b>${DIETN[S.profile.diet].toLowerCase()}</b>`:""}.`+({vegetariana:" Cambié carnes y pescado por chochos, menestras y huevo.",vegana:" Cambié carnes, huevo y lácteos por chochos, tofu y soya.",lowcarb:" Reduje a la mitad arroz, verde, papa, pan y fruta.",keto:" Casi sin arroz, verde, papa, pan ni fruta; más aguacate. Para keto estricta revisa tus carbos en el Registro."}[S.profile&&S.profile.diet]||"");
   $("#menuDays").innerHTML=MENU.map((d,i)=>`<button class="chip ${i===menuDay?"on":""}" data-md="${i}">${d.d}</button>`).join("");
   const day=MENU[menuDay],sd=scaledDay(day);
   let T={k:0,p:0,c:0,f:0,$:0};
-  const html=MEALS.map(([id,name])=>{
+  const html=MEALS.filter(([id])=>sd.meals[id]).map(([id,name])=>{
     const items=sd.meals[id]||[];let mk=0;
     const rows=items.map(([f,q])=>{const n=nutr(f,q);mk+=n.k;for(const k in T)T[k]+=n[k];return `<div class="mi"><span>${esc(f.n)} <span class="mut">· ${qtyLabel(f,q)}</span></span><b>${r0(n.k)}</b></div>`}).join("");
     return `<div class="mealtitle"><b>${name} <span class="mut small">${r0(mk)} kcal</span></b><button class="add" data-mmeal="${id}">+ Registrar</button></div>${rows}`;
@@ -818,58 +918,139 @@ $("#menuDay").addEventListener("click",e=>{
 });
 
 /* ================= CALCULADORA ================= */
+const GOALS={
+ bajar:{n:"Bajar de peso",i:"🔥",d:"Perder grasa con un déficit moderado y sostenible."},
+ definir:{n:"Definir",i:"💎",d:"Marcar músculo: déficit suave y proteína muy alta para perder grasa sin perder masa."},
+ recomp:{n:"Recomposición",i:"⚖️",d:"Bajar grasa y ganar músculo a la vez, despacio. Ideal si empiezas a entrenar o vuelves."},
+ mantener:{n:"Mantener",i:"🟰",d:"Comer lo que gastas para mantener tu peso."},
+ limpio:{n:"Volumen limpio",i:"💪",d:"Ganar músculo con la menor grasa posible (superávit pequeño)."},
+ subir:{n:"Subir de peso",i:"📈",d:"Volumen: ganar peso más rápido. Para personas muy delgadas o a las que les cuesta subir."}};
+const TGOAL={bajar:"bajar",definir:"bajar",recomp:"recomp",mantener:"mantener",limpio:"subir",subir:"subir"};
 let cGoal="bajar";
-const RATES={bajar:[["0.5","Suave: −0.5% del peso/semana (ideal para conservar músculo)"],["0.75","Moderado: −0.75%/semana"],["1","Rápido: −1%/semana (máximo recomendado)"]],
-  subir:[["250","Lento/limpio: +250 kcal (estilo Mentzer)"],["400","Moderado: +400 kcal"],["600","Rápido: +600 kcal (solo si eres muy delgado)"]]};
-function setGoalSeg(v){cGoal=v;$$("#cGoalSeg button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
-  const r=RATES[v];$("#cRateWrap").classList.toggle("hidden",!r);if(r)$("#cRate").innerHTML=r.map(([a,b],i)=>`<option value="${a}" ${i===0?"selected":""}>${b}</option>`).join("")}
+const RATES={bajar:[["0.5","Suave: −0.5% del peso/semana (conserva mejor el músculo)"],["0.75","Moderado: −0.75%/semana"],["1","Rápido: −1%/semana (máximo recomendado)"]],
+  definir:[["0.4","Muy suave: −0.4%/semana (máxima conservación de músculo)"],["0.5","Suave: −0.5%/semana (recomendado)"],["0.75","Moderado: −0.75%/semana"]],
+  limpio:[["150","+150 kcal (muy limpio, estilo Mentzer)"],["250","+250 kcal (recomendado)"],["350","+350 kcal"]],
+  subir:[["400","+400 kcal"],["500","+500 kcal"],["700","+700 kcal (si te cuesta mucho subir)"]]};
+const SUPPS={whey:{n:"Proteína whey",i:"🥤"},caseina:{n:"Caseína",i:"🌙"},creatina:{n:"Creatina",i:"⚡"},cafeina:{n:"Cafeína / pre-entreno",i:"☕"},omega3:{n:"Omega 3",i:"🐟"},vitd:{n:"Vitamina D",i:"☀️"},multi:{n:"Multivitamínico",i:"💊"},gainer:{n:"Ganador de masa",i:"🍌"}};
+const WHEY_FOOD={conc:"Proteína whey concentrada (1 scoop 30 g)",iso:"Proteína whey aislada (1 scoop 30 g)",veg:"Proteína vegetal (1 scoop 30 g)"};
+const DIETN={balanceada:"Balanceada",altaprot:"Alta en proteína",lowcarb:"Baja en carbohidratos",keto:"Keto",vegetariana:"Vegetariana",vegana:"Vegana"};
+let cSupSel=[];
+function renderGoalSeg(){
+  $("#cGoalSeg").innerHTML=Object.entries(GOALS).map(([k,g])=>`<button type="button" data-v="${k}" class="${k===cGoal?"on":""}"><span>${g.i}</span>${g.n}</button>`).join("");
+  $("#cGoalDesc").textContent=GOALS[cGoal].d;
+}
+function setGoalSeg(v){cGoal=GOALS[v]?v:"bajar";renderGoalSeg();
+  const r=RATES[cGoal];$("#cRateWrap").classList.toggle("hidden",!r);if(r)$("#cRate").innerHTML=r.map(([a,b],i)=>`<option value="${a}" ${i===(cGoal==="definir"||cGoal==="limpio"?1:0)?"selected":""}>${b}</option>`).join("")}
 $("#cGoalSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setGoalSeg(b.dataset.v)});
+function renderSuppChips(){
+  $("#cSupps").innerHTML=Object.entries(SUPPS).map(([k,s])=>`<button type="button" class="chip ${cSupSel.includes(k)?"on":""}" data-sp="${k}">${s.i} ${s.n}</button>`).join("");
+  $("#cWheyWrap").classList.toggle("hidden",!cSupSel.includes("whey"));
+}
+$("#cSupps").addEventListener("click",e=>{const b=e.target.closest("[data-sp]");if(!b)return;const k=b.dataset.sp;cSupSel=cSupSel.includes(k)?cSupSel.filter(x=>x!==k):[...cSupSel,k];renderSuppChips()});
+$("#cDiet").addEventListener("change",()=>{if($("#cDiet").value==="vegana")$("#cWhey").value="veg"});
 function calc(p){
-  const {sex,age,w,h,bf,act,goal:g,rate,mode,tw}=p;
+  const {sex,age,w,h,bf,act,goal:g,rate,mode,tw}=p,diet=p.diet||"balanceada";
   const bmr=bf>0?370+21.6*w*(1-bf/100):(10*w+6.25*h-5*age+(sex==="m"?5:-161));
   const tdee=bmr*act;
   let kcal=tdee,delta=0,weekly=0,warn="";
-  if(g==="bajar"){weekly=w*rate/100;delta=-Math.min(weekly*7700/7,tdee*0.3);kcal=tdee+delta}
+  if(g==="bajar"||g==="definir"){weekly=w*rate/100;delta=-Math.min(weekly*7700/7,tdee*(g==="definir"?0.22:0.3));kcal=tdee+delta;weekly=-delta*7/7700}
   else if(g==="recomp"){delta=-tdee*0.1;kcal=tdee+delta}
-  else if(g==="subir"){delta=+rate;kcal=tdee+delta;weekly=delta*7/7700}
+  else if(g==="limpio"||g==="subir"){delta=+rate;kcal=tdee+delta;weekly=delta*7/7700}
   const floor=sex==="m"?1500:1200;
   if(kcal<floor){kcal=floor;warn=`Ajustamos la meta al mínimo seguro de ${floor} kcal. Para bajar más rápido, aumenta tu actividad en vez de comer menos.`}
   kcal=Math.round(kcal/10)*10;
   const hm=h/100,bmi=w/(hm*hm),refW=bmi>30?25*hm*hm:w;
+  const cut=g==="bajar"||g==="definir"||g==="recomp";
   let P,F,C;
   if(mode==="mentzer"){P=kcal*0.25/4;C=kcal*0.60/4;F=kcal*0.15/9}
-  else if(mode==="evidencia"){const pk=g==="bajar"?2.2:g==="recomp"?2.0:1.8;P=pk*refW;F=Math.max(0.6*w,kcal*0.25/9);C=(kcal-P*4-F*9)/4}
-  else{const minP=(g==="bajar"||g==="recomp"?2.0:1.6)*refW;P=Math.max(kcal*0.25/4,minP);F=Math.max(kcal*0.15/9,0.6*w);C=(kcal-P*4-F*9)/4}
-  if(C<50){C=50}
+  else if(mode==="evidencia"){const pk={bajar:2.2,definir:2.4,recomp:2.2,mantener:1.8,limpio:1.8,subir:1.6}[g];P=pk*refW;F=Math.max(0.6*w,kcal*0.25/9);C=(kcal-P*4-F*9)/4}
+  else{const minP=({definir:2.2,bajar:2.0,recomp:2.0}[g]||1.6)*refW;P=Math.max(kcal*0.25/4,minP);F=Math.max(kcal*0.15/9,0.6*w);C=(kcal-P*4-F*9)/4}
+  if(diet==="altaprot")P=Math.max(P,(cut?2.4:2.2)*refW);
+  if(diet==="vegetariana")P*=1.05;if(diet==="vegana")P*=1.1;
+  if(diet==="keto"){C=30;F=(kcal-P*4-C*4)/9}
+  else if(diet==="lowcarb"){C=Math.max(75,kcal*0.2/4);F=(kcal-P*4-C*4)/9}
+  else{if(diet==="altaprot"||diet==="vegetariana"||diet==="vegana")C=(kcal-P*4-F*9)/4;if(C<50){C=50;F=Math.max(0.5*w,(kcal-P*4-C*4)/9)}}
   let weeks=null;
-  if(tw>0&&weekly>0){const diff=Math.abs(w-tw);if((g==="bajar"&&tw<w)||(g==="subir"&&tw>w))weeks=Math.ceil(diff/(g==="bajar"?weekly:weekly))}
-  return {bmr,tdee,kcal,delta,weekly,P,C,F,bmi,warn,weeks};
+  if(tw>0&&weekly>0){const diff=Math.abs(w-tw);if((cut&&tw<w)||((g==="limpio"||g==="subir")&&tw>w))weeks=Math.ceil(diff/weekly)}
+  const supps=p.supps||[];
+  const waterL=Math.round((w*0.035+(supps.includes("creatina")?0.5:0)+(act>=1.55?0.5:0))*4)/4;
+  return {bmr,tdee,kcal,delta,weekly,P,C,F,bmi,warn,weeks,waterL,glasses:Math.round(waterL*4)};
 }
+function suppPlan(p,R){
+  const s=p.supps||[],out=[],w=p.w;
+  const wheyName=WHEY_FOOD[p.whey||"conc"];
+  if(s.includes("whey"))out.push(["whey","🥤 "+({conc:"Whey concentrada",iso:"Whey aislada",veg:"Proteína vegetal"}[p.whey||"conc"]),`${R.P>=150?"1–2 scoops":"1 scoop"} al día (≈25 g de proteína cada uno)`,"Cuando no llegues a tu proteína con comida; después de entrenar es cómodo pero no obligatorio.",`Es comida en polvo, no magia: te ayuda a llegar a tus ${r0(R.P)} g de proteína. ${p.whey==="iso"?"La aislada casi no tiene lactosa.":p.whey==="veg"?"La vegetal (arveja/arroz) sirve si eres vegano o no toleras la leche.":"Si la leche te cae mal, cambia a aislada."}`,"A"]);
+  if(s.includes("creatina"))out.push(["creatina","⚡ Creatina monohidratada",`${w>100?"5–7":"3–5"} g todos los días, también los de descanso`,"Con cualquier comida, a la hora que te acuerdes. No hace falta fase de carga ni “ciclarla”.","El suplemento más estudiado: más fuerza y más masa muscular (ISSN, 2017). Puedes subir 1–2 kg de agua dentro del músculo: es normal. Toma un poco más de agua.","A"]);
+  if(s.includes("cafeina"))out.push(["cafeina","☕ Cafeína / pre-entreno",`${r0(3*w)}–${r0(5*w)} mg (un café ≈ 80–100 mg)`,"30–60 min antes de entrenar. Evítala 6–8 h antes de dormir.","Mejora el rendimiento y la fuerza. Empieza por la dosis baja; no pases de 400 mg al día.","A"]);
+  if(s.includes("caseina"))out.push(["caseina","🌙 Caseína","1 scoop (≈24 g de proteína)","Antes de dormir.","Proteína de digestión lenta. Alternativa barata: yogur griego o queso fresco en la noche.","B"]);
+  if(s.includes("omega3"))out.push(["omega3","🐟 Omega 3","1–2 g de EPA+DHA al día","Con una comida.","Salud del corazón y articulaciones. Opción barata: sardina 2 veces por semana.","B"]);
+  if(s.includes("vitd"))out.push(["vitd","☀️ Vitamina D","1000–2000 UI al día","Con una comida que tenga grasa.","Útil si tomas poco sol o pasas en oficina. Mejor si te haces un examen de sangre.","B"]);
+  if(s.includes("multi"))out.push(["multi","💊 Multivitamínico","1 al día","Con el desayuno.","Solo cubre huecos si tu dieta es poco variada; no reemplaza frutas y verduras.","C"]);
+  if(s.includes("gainer"))out.push(["gainer","🍌 Ganador de masa","1 servicio (≈570 kcal) si no llegas a tus calorías","Entre comidas.","Más barato casero: avena 60 g + guineo + 300 ml de leche + 20 g de mantequilla de maní + 1 scoop de whey ≈ 750 kcal.","C"]);
+  if(p.diet==="vegana")out.push(["b12","💉 Vitamina B12","250–500 µg al día o 2500 µg a la semana","Cualquier hora.","Obligatoria en dieta vegana: no se obtiene de plantas.","A"]);
+  return out;
+}
+function readCalcForm(){return {sex:$("#cSex").value,age:+$("#cAge").value,w:+$("#cW").value,h:+$("#cH").value,bf:+$("#cBF").value||0,act:+$("#cAct").value,goal:cGoal,rate:RATES[cGoal]?+$("#cRate").value:0,mode:$("#cMode").value,tw:+$("#cTW").value||0,
+  diet:$("#cDiet").value,meals:+$("#cMeals").value,fast:$("#cFast").checked,supps:cSupSel.slice(),whey:$("#cWhey").value}}
 $("#calcForm").addEventListener("submit",e=>{
   e.preventDefault();
-  const p={sex:$("#cSex").value,age:+$("#cAge").value,w:+$("#cW").value,h:+$("#cH").value,bf:+$("#cBF").value||0,act:+$("#cAct").value,goal:cGoal,rate:RATES[cGoal]?+$("#cRate").value:0,mode:$("#cMode").value,tw:+$("#cTW").value||0};
+  const p=readCalcForm();
   if(!(p.age>=14&&p.w>=30&&p.h>=120))return toast("Revisa edad, peso y estatura");
-  const R=calc(p);showCalc(p,R);
+  showCalc(p,calc(p),false);
 });
-function showCalc(p,R){
-  const gtxt={bajar:"Déficit calórico",recomp:"Déficit ligero (recomposición)",mantener:"Mantenimiento",subir:"Superávit calórico"}[p.goal];
+function showCalc(p,R,saved){
+  const G=GOALS[p.goal]||GOALS.bajar;
   const bmiTxt=R.bmi<18.5?"bajo peso":R.bmi<25?"normal":R.bmi<30?"sobrepeso":"obesidad";
-  $("#calcRes").innerHTML=`<div class="card"><h2>Tus resultados</h2>
-   <div class="grid3"><div class="stat"><div class="v">${r0(R.bmr)}</div><div class="l">Metabolismo basal</div></div><div class="stat"><div class="v">${r0(R.tdee)}</div><div class="l">Gasto diario (mantener)</div></div><div class="stat"><div class="v ac">${r0(R.kcal)}</div><div class="l">Tu meta diaria</div></div></div>
-   <p class="small" style="margin:10px 0 6px"><b>${gtxt}</b>: ${R.delta?(R.delta>0?"+":"")+r0(R.kcal-R.tdee)+" kcal/día respecto a mantener":"comes lo que gastas"}.
-   ${R.weekly?` Cambio esperado: <b>~${r1(p.goal==="bajar"?R.weekly:R.weekly)} kg/semana</b>.`:""}
-   ${R.weeks?` Llegarías a ${p.tw} kg en <b>~${R.weeks} semanas</b>.`:""}</p>
+  const SP=suppPlan(p,R);
+  const gNote={bajar:"Pésate 3–4 veces por semana en ayunas y mira el promedio semanal. Si en 2–3 semanas no baja, resta 100–150 kcal.",
+    definir:"Mantén el entrenamiento pesado (es lo que conserva el músculo) y la proteína alta. Mide cintura y fotos cada 2 semanas: la balanza baja lento al definir.",
+    recomp:"La balanza casi no se moverá: mide cintura, fotos y fuerza. Si la fuerza sube y la cintura baja, vas bien.",
+    mantener:"Ajusta ±100–150 kcal según tu peso promedio cada 2–3 semanas.",
+    limpio:"Busca subir 0.25–0.5 kg por mes si eres intermedio (hasta 1 kg en principiantes). Si subes más rápido, quita 100 kcal.",
+    subir:"Si te cuesta comer tanto, usa batidos (avena, guineo, leche, mantequilla de maní) y más comidas al día."}[p.goal];
+  const dNote={keto:"Keto: menos de 30 g de carbos al día. Los primeros días puedes sentir cansancio (“gripe keto”): toma agua con sal. El rendimiento en series largas puede bajar.",
+    lowcarb:"Baja en carbos: concentra los carbohidratos que tengas antes y después de entrenar.",
+    vegetariana:"Vegetariana: tu proteína sale de huevo, lácteos, chochos, menestras y tofu. Subí un 5% la meta de proteína porque la vegetal se aprovecha un poco menos.",
+    vegana:"Vegana: combina menestras + cereales (arroz con menestra) y usa chochos, tofu y proteína vegetal. Subí un 10% la proteína. Toma vitamina B12.",
+    altaprot:"Alta en proteína: más saciedad y mejor conservación del músculo, sobre todo en déficit."}[p.diet]||"";
+  $("#calcRes").innerHTML=`<div class="card"><div class="row between"><h2 style="margin:0">${saved?"Tu plan actual":"Tus resultados"}</h2><span class="tag m">${G.i} ${esc(G.n)}</span></div>
+   <div class="grid3" style="margin-top:10px"><div class="stat"><div class="v">${r0(R.bmr)}</div><div class="l">Metabolismo basal</div></div><div class="stat"><div class="v">${r0(R.tdee)}</div><div class="l">Gasto diario (mantener)</div></div><div class="stat"><div class="v ac">${r0(R.kcal)}</div><div class="l">Tu meta diaria</div></div></div>
+   <p class="small" style="margin:10px 0 6px"><b>${G.n}</b>: ${Math.abs(R.kcal-R.tdee)>5?(R.kcal>R.tdee?"+":"")+r0(R.kcal-R.tdee)+" kcal/día respecto a mantener":"comes lo que gastas"}.
+   ${R.weekly?` Cambio esperado: <b>~${r1(R.weekly)} kg/semana</b>.`:""}${R.weeks?` Llegarías a ${p.tw} kg en <b>~${R.weeks} semanas</b>.`:""}</p>
    <p class="small mut" style="margin:0 0 8px">IMC: ${r1(R.bmi)} (${bmiTxt})${p.bf?` · Masa magra: ${r1(p.w*(1-p.bf/100))} kg`:""}</p>
    ${R.warn?`<div class="note w">${R.warn}</div>`:""}
-   <h3>Macros diarios</h3>
+   <h3>Macros diarios · dieta ${esc(DIETN[p.diet]||"Balanceada").toLowerCase()}</h3>
    <div class="grid3"><div class="stat"><div class="v pc">${r0(R.P)} g</div><div class="l">Proteína · ${r1(R.P/p.w)} g/kg</div></div><div class="stat"><div class="v cc">${r0(R.C)} g</div><div class="l">Carbohidratos</div></div><div class="stat"><div class="v fc">${r0(R.F)} g</div><div class="l">Grasa</div></div></div>
-   <p class="small mut">Reparto: P ${r0(R.P*4/R.kcal*100)}% · C ${r0(R.C*4/R.kcal*100)}% · G ${r0(R.F*9/R.kcal*100)}%</p>
-   <div class="note small">${p.goal==="bajar"?"Pésate 3–4 veces por semana en ayunas y mira el promedio semanal. Si en 2–3 semanas no baja, resta 100–150 kcal.":p.goal==="subir"?"Si subes más de 0.5 kg/semana (o 1 kg en principiantes) es probable que sea grasa: reduce 100–150 kcal. Mentzer: el músculo crece despacio, no hace falta comer de más.":"Ajusta ±100–150 kcal según tu peso promedio cada 2–3 semanas."}</div>
-   <button class="pri full" id="useGoal">Usar como mi meta diaria</button></div>`;
-  $("#useGoal").onclick=()=>{S.goal={kcal:R.kcal,p:R.P,c:R.C,f:R.F};S.profile=p;save();$("#tGoal").value=p.goal;setTrSex(p.sex);renderAll();toast("Meta guardada: "+R.kcal+" kcal");location.hash="registro"};
-  $("#calcRes").scrollIntoView({behavior:"smooth",block:"start"});
+   <p class="small mut">Reparto: P ${r0(R.P*4/R.kcal*100)}% · C ${r0(R.C*4/R.kcal*100)}% · G ${r0(R.F*9/R.kcal*100)}% · ${p.meals||5} comidas de ~${r0(R.kcal/(p.meals||5))} kcal y ~${r0(R.P/(p.meals||5))} g de proteína</p>
+   <div class="grid2"><div class="stat"><div class="v" style="color:var(--p)">${R.waterL} L</div><div class="l">Agua al día (~${R.glasses} vasos)</div></div><div class="stat"><div class="v">${p.fast?"12:00–20:00":(p.meals||5)+" comidas"}</div><div class="l">${p.fast?"Ventana de ayuno 16:8 (ejemplo)":"Reparto del día"}</div></div></div>
+   <div class="note small">${gNote}</div>
+   ${dNote?`<div class="note small">${dNote}</div>`:""}
+   ${p.fast?`<div class="note small">Ayuno 16:8: los estudios muestran resultados parecidos a una dieta normal con las mismas calorías; úsalo si te acomoda. Mete tus ${r0(R.P)} g de proteína en 2–3 comidas dentro de la ventana.</div>`:""}
+   ${SP.length?`<h3>Tu plan de suplementos</h3>${SP.map(([k,n,dose,when,why,ev])=>`<div class="supp"><div class="row between"><b>${n}</b><span class="tag ${ev==="A"?"pri":"m"}">Evidencia ${ev}</span></div><div class="small"><b>Dosis:</b> ${dose}</div><div class="small"><b>Cuándo:</b> ${when}</div><div class="small mut">${why}</div></div>`).join("")}
+     <p class="small mut">Evidencia A: muy respaldado por estudios · B: respaldo moderado · C: útil solo en casos concretos. BCAA, glutamina y “quemadores” no valen la pena si comes suficiente proteína, y los quemadores pueden ser peligrosos.</p>`:`<p class="small mut">¿Tomas whey o creatina? Márcalos arriba en “Suplementos” y te digo cómo y cuánto tomar.</p>`}
+   ${saved?"":`<button class="pri full" id="useGoal">Guardar como mi plan</button>`}</div>`;
+  const ug=$("#useGoal");
+  if(ug)ug.onclick=()=>{S.goal={kcal:R.kcal,p:R.P,c:R.C,f:R.F};S.profile=p;save();$("#tGoal").value=TGOAL[p.goal]||"mantener";setTrSex(p.sex);renderAll();collapseCalc(true);toast("Plan guardado: "+R.kcal+" kcal");location.hash="registro"};
+  if(!saved)$("#calcRes").scrollIntoView({behavior:"smooth",block:"start"});
 }
-function fillCalc(){const p=S.profile;if(!p)return;$("#cSex").value=p.sex;$("#cAge").value=p.age;$("#cW").value=p.w;$("#cH").value=p.h;$("#cBF").value=p.bf||"";$("#cTW").value=p.tw||"";$("#cAct").value=String(p.act);$("#cMode").value=p.mode;setGoalSeg(p.goal);if(RATES[p.goal])$("#cRate").value=String(p.rate);$("#tGoal").value=p.goal}
+function collapseCalc(on){
+  const p=S.profile;if(!p)on=false;
+  $("#calcForm").classList.toggle("hidden",on);$("#cIntro").classList.toggle("hidden",on);$("#cSum").classList.toggle("hidden",!on);
+  if(!on)return;
+  const G=GOALS[p.goal]||GOALS.bajar;
+  $("#cSum").innerHTML=`<div class="sumchips"><span class="on">${G.i} ${esc(G.n)}</span><span>${p.sex==="f"?"Mujer":"Hombre"} · ${p.age} años</span><span>${p.w} kg · ${p.h} cm</span><span>${esc(DIETN[p.diet]||"Balanceada")}</span><span>${p.meals||5} comidas${p.fast?" · ayuno 16:8":""}</span>${(p.supps||[]).map(k=>`<span>${SUPPS[k].i} ${k==="whey"?{conc:"Whey concentrada",iso:"Whey aislada",veg:"Proteína vegetal"}[p.whey||"conc"]:SUPPS[k].n}</span>`).join("")}</div>
+    <button type="button" class="sm" id="cEdit">✏️ Cambiar mis datos</button>`;
+  $("#cEdit").onclick=()=>{collapseCalc(false);$("#calcForm").scrollIntoView({behavior:"smooth",block:"start"})};
+  showCalc(p,calc(p),true);
+}
+function fillCalc(){
+  const p=S.profile;renderSuppChips();
+  if(!p){setGoalSeg("bajar");$("#calcRes").innerHTML="";collapseCalc(false);return}
+  $("#cSex").value=p.sex;$("#cAge").value=p.age;$("#cW").value=p.w;$("#cH").value=p.h;$("#cBF").value=p.bf||"";$("#cTW").value=p.tw||"";$("#cAct").value=String(p.act);$("#cMode").value=p.mode;
+  setGoalSeg(p.goal);if(RATES[cGoal])$("#cRate").value=String(p.rate);
+  $("#cDiet").value=p.diet||"balanceada";$("#cMeals").value=String(p.meals||5);$("#cFast").checked=!!p.fast;$("#cWhey").value=p.whey||"conc";cSupSel=(p.supps||[]).slice();renderSuppChips();
+  $("#tGoal").value=TGOAL[p.goal]||"mantener";collapseCalc(true);
+}
 
 /* ================= ENTRENAMIENTO ================= */
 const EX={
@@ -1532,7 +1713,7 @@ $("#pgList").addEventListener("click",e=>{
 const FB_V="10.12.2";
 const Cloud={on:false,user:null,fs:null,auth:null,base:null,dirty:new Set(),timer:null,unsub:null,status:"",last:0,busy:false};
 function chunksOf(st){
-  const c={main:JSON.stringify({custom:st.custom||[],goal:st.goal||null,profile:st.profile||null,train:st.train||null,wlog:st.wlog||[],water:st.water||{}})};
+  const c={main:JSON.stringify({custom:st.custom||[],goal:st.goal||null,profile:st.profile||null,train:st.train||null,wlog:st.wlog||[],water:st.water||{},suppLog:st.suppLog||{}})};
   const months={};for(const d in st.log||{}){if(!st.log[d]||!st.log[d].length)continue;const m="log_"+d.slice(0,7);(months[m]=months[m]||{})[d]=st.log[d]}
   for(const m in months)c[m]=JSON.stringify(months[m]);
   return c;
@@ -1549,7 +1730,7 @@ function cloudTrack(){
 }
 function applyChunk(k,json){
   const v=JSON.parse(json);
-  if(k==="main"){Object.assign(S,{custom:v.custom||[],goal:v.goal||null,profile:v.profile||null,train:v.train||null,wlog:v.wlog||[],water:v.water||{}});return}
+  if(k==="main"){Object.assign(S,{custom:v.custom||[],goal:v.goal||null,profile:v.profile||null,train:v.train||null,wlog:v.wlog||[],water:v.water||{},suppLog:v.suppLog||{}});return}
   const pre=k.slice(4);
   for(const d of Object.keys(S.log))if(d.startsWith(pre))delete S.log[d];
   Object.assign(S.log,v);
@@ -1578,7 +1759,7 @@ function mergeFirst(remote){
     const byId=(a,b,key)=>{const seen=new Set(a.map(x=>x[key]));return a.concat(b.filter(x=>!seen.has(x[key])))};
     S.custom=byId(m.custom||[],S.custom||[],"n");S.wlog=byId(m.wlog||[],S.wlog||[],"id");
     S.goal=m.goal||S.goal;S.profile=m.profile||S.profile;S.train=m.train||S.train;
-    S.water=Object.assign({},S.water||{},m.water||{});}
+    S.water=Object.assign({},S.water||{},m.water||{});S.suppLog=Object.assign({},S.suppLog||{},m.suppLog||{});}
   for(const k in R){if(!k.startsWith("log_"))continue;for(const d in R[k]){const loc=S.log[d]||[];const ids=new Set(R[k][d].map(e=>e.id));S.log[d]=R[k][d].concat(loc.filter(e=>!ids.has(e.id)))}}
   const now=Date.now();S.ts={};for(const k in chunksOf(S)){S.ts[k]=now;Cloud.dirty.add(k)}
 }
@@ -1597,7 +1778,7 @@ async function cloudStart(){
         else if(lt>rt||(!remote[k]&&local[k]))Cloud.dirty.add(k);
       }
     }
-    cloudBaseline();saveLocal();renderAll();fillTrain();if(location.hash==="#progreso")renderProgress();
+    cloudBaseline();saveLocal();fillCalc();renderAll();fillTrain();if(location.hash==="#progreso")renderProgress();
     await cloudPush();
     if(Cloud.unsub)Cloud.unsub();
     Cloud.unsub=Cloud.fs.collection("users").doc(Cloud.user.uid).collection("chunks").onSnapshot(qs=>{
@@ -1605,7 +1786,7 @@ async function cloudStart(){
       let changed=false;
       qs.docChanges().forEach(ch=>{if(ch.type==="removed")return;const d=ch.doc.data(),k=ch.doc.id;
         if((d.ts||0)>(S.ts[k]||0)&&!Cloud.dirty.has(k)){applyChunk(k,d.json);S.ts[k]=d.ts;changed=true}});
-      if(changed){cloudBaseline();saveLocal();renderAll();if(location.hash==="#progreso")renderProgress();if(location.hash==="#entreno"&&S.train)fillTrain();toast("☁️ Datos actualizados desde otro dispositivo")}
+      if(changed){cloudBaseline();saveLocal();fillCalc();renderAll();if(location.hash==="#progreso")renderProgress();if(location.hash==="#entreno"&&S.train)fillTrain();toast("☁️ Datos actualizados desde otro dispositivo")}
     },e=>console.warn("nube escucha",e));
     setCloudStatus("ok");
   }catch(e){console.warn("nube inicio",e);setCloudStatus(navigator.onLine?"error":"offline")}
@@ -1672,7 +1853,7 @@ async function authDo(a){
       if(!em||!pw)return msg("Escribe tu correo y contraseña.");
       if(a==="up"&&pw!==$("#auPass2").value)return msg("Las contraseñas no coinciden.");
       $("#gBtn").disabled=true;msg("");gate("form");
-      if(a==="in")await Cloud.auth.signInWithEmailAndPassword(em,pw);else await Cloud.auth.createUserWithEmailAndPassword(em,pw);
+      if(a==="in")await Cloud.auth.signInWithEmailAndPassword(em,pw);else{await Cloud.auth.createUserWithEmailAndPassword(em,pw);location.hash="registro";toast("¡Cuenta creada! Configura tu perfil en 2 pasos")}
       $("#auPass").value="";$("#auPass2").value="";
     }
     else if(a==="reset"){if(!em)return msg("Escribe tu correo arriba y vuelve a tocar “Olvidé mi contraseña”.");await Cloud.auth.sendPasswordResetEmail(em);msg("Te envié un correo para cambiar tu contraseña (revisa también spam).")}
@@ -1681,7 +1862,7 @@ async function authDo(a){
       if(Cloud.dirty.size)return toast("Aún no se guardó todo en la nube. Conéctate a internet e inténtalo de nuevo.");
       await Cloud.auth.signOut();
       // Se borran los datos de este teléfono (ya están en la nube) para que otra cuenta no los mezcle.
-      S={log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[]};saveLocal();cloudBaseline();renderAll();fillTrain();
+      S={log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{}};saveLocal();cloudBaseline();fillCalc();renderAll();fillTrain();
       toast("Sesión cerrada");
     }
     else if(a==="sync"){await cloudStart();toast("Sincronizado")}
@@ -1699,7 +1880,7 @@ try{if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serv
 renderMethInfo();setTrSex(S.profile&&S.profile.sex==="f"?"f":"m");$("#trForm").addEventListener("change",renderMethUI);
 $("#tSexSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){setTrSex(b.dataset.v);renderMethUI()}});
 $("#tLagChips").addEventListener("click",e=>{const b=e.target.closest("[data-lag]");if(!b)return;const k=b.dataset.lag;if(!k)lagSel=[];else if(lagSel.includes(k))lagSel=lagSel.filter(x=>x!==k);else{lagSel.push(k);if(lagSel.length>2)lagSel.shift()}renderLagChips();renderMethUI()});$("#methRec").addEventListener("click",e=>{const b=e.target.closest("[data-meth]");if(b){$("#tMeth").value=b.dataset.meth;renderMethUI()}});renderMethUI();
-setGoalSeg("bajar");fillCalc();fillTrain();renderAll();route();
+fillCalc();fillTrain();renderAll();route();
 cloudBaseline();renderCloud();
 if(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey){if(!S.cloudUid)gate("load","Cargando…")}
 cloudInit();
