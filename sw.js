@@ -1,5 +1,5 @@
 // Caché sin conexión: sirve la app aunque no haya internet.
-const CACHE = "nutrifuerza-v11";
+const CACHE = "nutrifuerza-v12";
 const FILES = ["./", "./index.html", "./manifest.json", "./firebase-config.js", "./icons/icon-180.png", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
