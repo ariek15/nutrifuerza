@@ -125,6 +125,9 @@ li{margin:3px 0}
 .mi{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .mi:last-child{border-bottom:0}
 .hidden{display:none!important}
+.quote{border-left:3px solid var(--acc);padding:6px 0 6px 12px;margin:8px 0}
+.quote .qt{font-size:15px;font-style:italic;line-height:1.45}
+.quote .qa{font-size:12.5px;color:var(--mut);margin-top:4px}
 .goalgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .goalgrid button{padding:9px 4px;font-size:12.5px;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mut)}
 .goalgrid button span{font-size:19px}
@@ -197,6 +200,7 @@ li{margin:3px 0}
 <!-- ============ REGISTRO ============ -->
 <section class="view" id="v-registro">
   <div id="onb"></div>
+  <div class="card" id="quoteCard"></div>
   <div class="datebar">
     <button id="dPrev" aria-label="Día anterior">‹</button>
     <div><div class="d" id="dLabel">Hoy</div><div class="small mut" id="dSub" style="text-align:center"></div></div>
@@ -247,13 +251,14 @@ li{margin:3px 0}
 <section class="view" id="v-menus">
   <div class="card">
     <h2>Menú ecuatoriano económico</h2>
-    <p class="small mut" style="margin:0">7 días con comida de mercado (arroz, menestra, verde, huevo, atún, sardina, chochos, mote…). Las porciones se ajustan a tu meta calórica. Precios aproximados de mercado/tienda en Ecuador.</p>
+    <p class="small mut" style="margin:0">2 semanas de menús con 60 opciones de comida ecuatoriana económica (bolón, humita, tigrillo, encebollado, seco, guatita, corviche, locro, menestras, chochos…). Toca 🔄 para cambiar cualquier comida. Las porciones se ajustan a tu meta y los precios son aproximados de mercado en Ecuador.</p>
     <div class="note" id="menuGoal"></div>
+    <div class="seg" id="menuWeek" style="margin:10px 0 8px"></div>
     <div class="chips" id="menuDays"></div>
   </div>
   <div class="card" id="menuDay"></div>
   <div class="card">
-    <h2>Lista de compras de la semana</h2>
+    <h2 id="shopTitle">Lista de compras de la semana</h2>
     <p class="small mut" style="margin-top:0">Cantidades ya cocidas/listas para comer, ajustadas a tu meta. Costo semanal estimado: <b class="ac" id="shopCost"></b></p>
     <div id="shopList"></div>
   </div>
@@ -466,6 +471,7 @@ li{margin:3px 0}
     <div class="glogo">N</div>
     <h1>NutriFuerza EC</h1>
     <p class="gsub">Tu nutrición y entrenamiento, guardados en la nube</p>
+    <div id="gQuote" style="margin:-8px 0 18px"></div>
     <div id="gLoad"><div class="spin"></div><p class="gsub" id="gLoadTxt" style="margin:6px 0 0">Cargando…</p></div>
     <form id="gForm" class="hidden" autocomplete="on">
       <div class="seg" id="gSeg"><button type="button" data-m="in" class="on">Iniciar sesión</button><button type="button" data-m="up">Crear cuenta</button></div>
@@ -627,7 +633,11 @@ const RAW = [
  ["Empanada de morocho",280,8,30,14,"unidad",1,"Platos ecuatorianos",0.75,"empanada morocho"],
  ["Morocho (vaso)",230,6,38,6,"unidad",1,"Bebidas",0.75,"morocho"],
  ["Colada de avena (vaso)",180,5,32,3.5,"unidad",1,"Bebidas",0.50,"colada avena"],
- ["Choclo con queso",280,10,35,11,"unidad",1,"Platos ecuatorianos",1.00,"choclo queso"]
+ ["Choclo con queso",280,10,35,11,"unidad",1,"Platos ecuatorianos",1.00,"choclo queso"],
+ ["Tortilla de verde con queso",380,9,55,14,"unidad",1,"Platos ecuatorianos",1.00,"tortilla verde queso"],
+ ["Tortilla de huevo con verduras",200,13,6,14,"unidad",1,"Lácteos y huevos",0.50,"tortilla huevo omelette verduras"],
+ ["Corviche",300,8,32,15,"unidad",1,"Platos ecuatorianos",1.00,"corviche verde pescado mani"],
+ ["Muchín de yuca",220,4,30,10,"unidad",1,"Platos ecuatorianos",0.60,"muchin yuca"]
 ];
 const DB = RAW.map(r=>({n:r[0],k:r[1],p:r[2],c:r[3],f:r[4],u:r[5],porc:r[6],cat:r[7],price:r[8],kw:r[9]||""}));
 const MEALS = [["des","Desayuno"],["mm","Media mañana"],["alm","Almuerzo"],["mt","Media tarde"],["cen","Cena"],["noc","Antes de dormir"]];
@@ -637,7 +647,7 @@ function activeMeals(){const a=activeIds();return MEALS.filter(([id])=>a.include
 /* ================= ESTADO ================= */
 const KEY="nutrifuerza_v1";
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
-let S = Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{}}, load());
+let S = Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{},menuPick:{}}, load());
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function save(){cloudTrack();saveLocal()}
 
@@ -690,7 +700,7 @@ function renderLog(){
   const w=S.water[dkey(cur)]||0,wg=S.profile?calc(S.profile).glasses:8;
   $("#water").innerHTML=Array.from({length:Math.min(16,Math.max(wg,w+1,8))},(_,i)=>`<button data-w="${i+1}" class="${i<w?"on":""}" style="${i>=wg?"opacity:.5":""}">💧</button>`).join("");
   $("#waterTxt").textContent=`${w} de ${wg} vasos (${(w*0.25).toFixed(2)} / ${(wg*0.25).toFixed(2)} L)`;
-  renderSupps();renderOnb();
+  renderSupps();renderOnb();renderQuote();
   $("#hdrsub").innerHTML=`${r0(T.k)} / ${r0(G.kcal)} kcal`;
 }
 $("#meals").addEventListener("click",e=>{
@@ -738,7 +748,7 @@ function renderOnb(){
 
 $("#bkCopy").onclick=async()=>{const t=JSON.stringify(S);try{await navigator.clipboard.writeText(t);toast("Respaldo copiado")}catch(e){$("#bkBox").classList.remove("hidden");$("#bkTxt").value=t;$("#bkTxt").select();toast("Copia el texto manualmente")}};
 $("#bkShow").onclick=()=>{$("#bkBox").classList.toggle("hidden")};
-$("#bkLoad").onclick=()=>{try{const o=JSON.parse($("#bkTxt").value);if(typeof o!=="object"||!o.log)throw 0;S=Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{}},o);save();renderAll();toast("Datos restaurados")}catch(e){toast("Respaldo no válido")}};
+$("#bkLoad").onclick=()=>{try{const o=JSON.parse($("#bkTxt").value);if(typeof o!=="object"||!o.log)throw 0;S=Object.assign({log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{},menuPick:{}},o);save();renderAll();toast("Datos restaurados")}catch(e){toast("Respaldo no válido")}};
 
 /* ================= HOJA AGREGAR ================= */
 let selFood=null;
@@ -848,16 +858,95 @@ function renderMyFoods(){
   $$("#myFoods [data-mf]").forEach(b=>b.onclick=()=>{S.custom.splice(+b.dataset.mf,1);save();renderMyFoods()});
 }
 
-/* ================= MENÚS ================= */
-const MENU=[
- {d:"Lunes",m:{des:[["Verde cocido",150],["Huevo entero",2],["Queso fresco",30],["Café negro",200]],mm:[["Guineo / banano",120]],alm:[["Arroz blanco cocido",150],["Menestra de lenteja",200],["Pechuga de pollo cocida",120],["Ensalada (lechuga, tomate, cebolla)",100]],mt:[["Chochos desamargados",100],["Tomate riñón",60],["Tostado",20]],cen:[["Papa cocida",200],["Huevo entero",1],["Aguacate",50],["Ensalada (lechuga, tomate, cebolla)",100]]}},
- {d:"Martes",m:{des:[["Avena en hojuelas (cruda)",50],["Leche entera",250],["Guineo / banano",100]],mm:[["Pan de agua",1],["Queso fresco",30]],alm:[["Arroz blanco cocido",150],["Menestra de fréjol",150],["Hígado de res cocido",120],["Maduro cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]],mt:[["Papaya",200]],cen:[["Arroz blanco cocido",100],["Atún en agua (escurrido)",100],["Ensalada (lechuga, tomate, cebolla)",150],["Aguacate",40]]}},
- {d:"Miércoles",m:{des:[["Yuca cocida",150],["Huevo entero",2],["Leche entera",200]],mm:[["Mandarina",150]],alm:[["Arroz blanco cocido",150],["Sardina en salsa de tomate",100],["Verde cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]],mt:[["Yogur natural",200],["Avena en hojuelas (cruda)",20]],cen:[["Sopa de quinua",1],["Huevo entero",1],["Pan de agua",1]]}},
- {d:"Jueves",m:{des:[["Mote cocido",150],["Huevo entero",2],["Queso fresco",30],["Café negro",200]],mm:[["Guineo / banano",120]],alm:[["Arroz blanco cocido",150],["Menestra de lenteja",150],["Tilapia cocida",150],["Maduro cocido",80],["Ensalada (lechuga, tomate, cebolla)",100]],mt:[["Chochos desamargados",80],["Tostado",20]],cen:[["Locro de papa",1],["Aguacate",40]]}},
- {d:"Viernes",m:{des:[["Avena en hojuelas (cruda)",50],["Leche entera",250],["Mora",100]],mm:[["Huevo entero",2]],alm:[["Arroz blanco cocido",150],["Pechuga de pollo cocida",120],["Papa cocida",150],["Ensalada (lechuga, tomate, cebolla)",150]],mt:[["Guineo / banano",100],["Maní",20]],cen:[["Arroz blanco cocido",100],["Menestra de fréjol",150],["Huevo entero",1],["Ensalada (lechuga, tomate, cebolla)",100]]}},
- {d:"Sábado",m:{des:[["Humita",1],["Huevo entero",1],["Café negro",200]],mm:[["Papaya",200]],alm:[["Encebollado",1],["Tostado",15]],mt:[["Yogur natural",200],["Guineo / banano",100]],cen:[["Arroz blanco cocido",120],["Atún en agua (escurrido)",100],["Choclo cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]]}},
- {d:"Domingo",m:{des:[["Bolón de verde con queso",1],["Huevo entero",1],["Café negro",200]],mm:[["Tomate de árbol",150]],alm:[["Seco de pollo con arroz y maduro",1],["Ensalada (lechuga, tomate, cebolla)",100]],mt:[["Chochos desamargados",80]],cen:[["Sopa de quinua",1],["Pan de agua",1]]}}
+/* ---- Motivación: q = frase conocida (traducida), i = idea/enseñanza resumida (no es cita textual) ---- */
+const QUOTES=[
+ ["Las últimas tres o cuatro repeticiones son las que hacen crecer el músculo. Esa zona de dolor separa al campeón del que no lo es.","Arnold Schwarzenegger","q"],
+ ["La mente es el límite. Mientras la mente pueda imaginar que puedes hacer algo, puedes hacerlo, si de verdad lo crees al 100%.","Arnold Schwarzenegger","q"],
+ ["La fuerza no viene de ganar. Tus luchas desarrollan tu fuerza. Cuando pasas por dificultades y decides no rendirte, eso es fuerza.","Arnold Schwarzenegger","q"],
+ ["No puedes subir la escalera del éxito con las manos en los bolsillos.","Arnold Schwarzenegger","q"],
+ ["Arnold imaginaba sus bíceps como montañas mientras entrenaba. Visualiza lo que quieres construir.","Arnold Schwarzenegger","i"],
+ ["Todo el mundo quiere ser culturista, pero nadie quiere levantar pesas pesadas.","Ronnie Coleman","q"],
+ ["¡Yeah buddy! ¡Peso ligero, baby! (lo gritaba con cientos de kilos en la barra)","Ronnie Coleman","q"],
+ ["Estimula, no aniquiles.","Lee Haney, 8 veces Mr. Olympia","q"],
+ ["Odiaba cada minuto del entrenamiento, pero me decía: no te rindas. Sufre ahora y vive el resto de tu vida como un campeón.","Muhammad Ali","q"],
+ ["No temo al hombre que ha practicado 10.000 patadas una vez; temo al que ha practicado una patada 10.000 veces.","Bruce Lee","q"],
+ ["El entrenamiento solo estimula el crecimiento: el músculo crece mientras descansas. Entrena duro, breve, y luego recupérate.","Mike Mentzer","i"],
+ ["Más no es mejor. Busca la menor cantidad de entrenamiento que produzca el máximo resultado.","Mike Mentzer","i"],
+ ["Una serie llevada de verdad al fallo vale más que diez hechas a medias. La intensidad es la clave.","Mike Mentzer","i"],
+ ["Piensa antes de entrenar: el culturismo también se hace con la razón, no solo con la fuerza.","Mike Mentzer","i"],
+ ["El físico se construye con años de constancia, no con un solo entrenamiento perfecto.","Chris Bumstead (CBum)","i"],
+ ["Disfruta el proceso: si solo te importa el resultado final, nunca vas a sentirte satisfecho.","Chris Bumstead (CBum)","i"],
+ ["Cuidar tu mente es tan importante como cuidar tu cuerpo. Pedir ayuda también es de fuertes.","Chris Bumstead (CBum)","i"],
+ ["Pocas series, máxima intensidad y técnica impecable: cada repetición tiene que contar.","Dorian Yates","i"],
+ ["Los detalles hacen al campeón: estira, bombea, toma agua y no te saltes ni una serie.","Hany Rambod","i"],
+ ["No necesitas motivación todos los días; necesitas disciplina los días que no la tienes.","NutriFuerza","n"],
+ ["Un mal día de comida no arruina tu progreso. Rendirte sí.","NutriFuerza","n"],
+ ["Arroz, menestra, huevo y verde también construyen músculo. Comer bien no tiene que ser caro.","NutriFuerza","n"],
+ ["Compárate con quien eras hace un mes, no con los demás.","NutriFuerza","n"],
+ ["El mejor entrenamiento es el que haces, no el perfecto que nunca empiezas.","NutriFuerza","n"]
 ];
+let quoteOff=0;
+function quoteOfDay(extra){const d=Math.floor(Date.now()/864e5);return QUOTES[((d*7+(extra||0))%QUOTES.length+QUOTES.length)%QUOTES.length]}
+function quoteHTML(q){const by=q[2]==="i"?`Idea de ${esc(q[1])}`:q[2]==="n"?"":esc(q[1]);return `<div class="quote"><div class="qt">“${esc(q[0])}”</div>${by?`<div class="qa">— ${by}</div>`:""}</div>`}
+function renderQuote(){const box=$("#quoteCard");if(!box)return;
+  box.innerHTML=`<div class="row between"><b class="small" style="color:var(--acc)">💬 MOTIVACIÓN DEL DÍA</b><button class="sm ghost" id="qNext" style="padding:4px 8px">Otra →</button></div>${quoteHTML(quoteOfDay(quoteOff))}<p class="small mut" style="margin:6px 0 0;font-size:11px">“Idea de…” resume la filosofía de ese atleta; no es una cita textual.</p>`;
+  $("#qNext").onclick=()=>{quoteOff++;renderQuote()}}
+
+/* ================= MENÚS ================= */
+/* ---- Banco de comidas ecuatorianas económicas: el menú de 14 días se arma con estas opciones ---- */
+const POOL={
+ des:[["Verde con huevo y queso",[["Verde cocido",150],["Huevo entero",2],["Queso fresco",30],["Café negro",200]]],
+  ["Avena con leche y guineo",[["Avena en hojuelas (cruda)",50],["Leche entera",250],["Guineo / banano",100]]],
+  ["Yuca con huevo",[["Yuca cocida",150],["Huevo entero",2],["Leche entera",200]]],
+  ["Mote pillo casero",[["Mote cocido",150],["Huevo entero",2],["Queso fresco",30],["Café negro",200]]],
+  ["Humita con huevo",[["Humita",1],["Huevo entero",1],["Café negro",200]]],
+  ["Bolón con huevo",[["Bolón de verde con queso",1],["Huevo entero",1],["Café negro",200]]],
+  ["Pan con huevo revuelto",[["Pan de agua",2],["Huevo entero",2],["Queso fresco",20],["Jugo natural sin azúcar",250]]],
+  ["Tortilla de verde",[["Tortilla de verde con queso",1],["Café con leche y azúcar (taza)",1]]],
+  ["Colada de avena y pan de yuca",[["Colada de avena (vaso)",1],["Pan de yuca",2]]],
+  ["Yogur con avena y frutilla",[["Yogur natural",200],["Avena en hojuelas (cruda)",40],["Frutilla",100],["Maní",15]]],
+  ["Tigrillo",[["Tigrillo",1],["Café negro",200]]],
+  ["Choclo con queso y papaya",[["Choclo con queso",1],["Papaya",150],["Café negro",200]]],
+  ["Tortilla de huevo con pan",[["Tortilla de huevo con verduras",1],["Pan integral (rebanada)",2],["Naranja",150]]]],
+ mm:[["Guineo",[["Guineo / banano",120]]],["Mandarina con maní",[["Mandarina",150],["Maní",15]]],["Papaya",[["Papaya",200]]],["Huevos duros",[["Huevo entero",2]]],
+  ["Yogur con guineo",[["Yogur natural",150],["Guineo / banano",80]]],["Tostado con chochos",[["Tostado",25],["Chochos desamargados",60]]],["Manzana con mantequilla de maní",[["Manzana",150],["Mantequilla de maní",16]]],
+  ["Sánduche de queso",[["Pan integral (rebanada)",2],["Queso fresco",30]]],["Piña",[["Piña",200]]],["Mango",[["Mango",150]]]],
+ alm:[["Arroz, menestra de lenteja y pollo",[["Arroz blanco cocido",150],["Menestra de lenteja",200],["Pechuga de pollo cocida",120],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Arroz, menestra y bistec de hígado",[["Arroz blanco cocido",150],["Menestra de fréjol",150],["Hígado de res cocido",120],["Maduro cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Arroz con sardina y verde",[["Arroz blanco cocido",150],["Sardina en salsa de tomate",100],["Verde cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Arroz, menestra y tilapia",[["Arroz blanco cocido",150],["Menestra de lenteja",150],["Tilapia cocida",150],["Maduro cocido",80],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Pollo con papas y ensalada",[["Arroz blanco cocido",120],["Pechuga de pollo cocida",120],["Papa cocida",150],["Ensalada (lechuga, tomate, cebolla)",150]]],
+  ["Encebollado",[["Encebollado",1],["Tostado",15]]],
+  ["Seco de pollo",[["Seco de pollo con arroz y maduro",1],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Locro con arroz y huevo",[["Locro de papa",1],["Arroz blanco cocido",100],["Huevo frito",1],["Aguacate",40]]],
+  ["Sopa de quinua y arroz con atún",[["Sopa de quinua",1],["Arroz blanco cocido",120],["Atún en agua (escurrido)",80],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Guatita",[["Guatita con arroz",1],["Aguacate",30]]],
+  ["Arroz con menestra y huevo",[["Arroz con menestra y huevo frito",1],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Caldo de bolas de verde",[["Caldo de bolas de verde",1],["Arroz blanco cocido",80]]],
+  ["Tallarín con carne",[["Fideo / tallarín cocido",180],["Carne de res magra cocida",100],["Tomate riñón",80],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Chuleta con menestra",[["Arroz blanco cocido",120],["Menestra de lenteja",180],["Carne de cerdo cocida",100],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Ceviche de pescado con chifles",[["Ceviche de pescado",1],["Canguil sin mantequilla",20],["Chifles",20],["Arroz blanco cocido",80]]]],
+ mt:[["Cevichocho casero",[["Chochos desamargados",100],["Tomate riñón",60],["Tostado",20]]],["Yogur con avena",[["Yogur natural",200],["Avena en hojuelas (cruda)",20]]],["Guineo con maní",[["Guineo / banano",100],["Maní",20]]],
+  ["Papaya",[["Papaya",200]]],["Pan de yuca con café",[["Pan de yuca",1],["Café negro",200]]],["Huevos duros",[["Huevo entero",2]]],["Sánduche de queso",[["Pan integral (rebanada)",2],["Queso fresco",30]]],
+  ["Mandarina y yogur",[["Mandarina",150],["Yogur natural",150]]],["Muchín de yuca",[["Muchín de yuca",1]]],["Choclo cocido",[["Choclo cocido",120],["Queso fresco",20]]]],
+ cen:[["Papa con huevo y aguacate",[["Papa cocida",200],["Huevo entero",1],["Aguacate",50],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Arroz con atún",[["Arroz blanco cocido",100],["Atún en agua (escurrido)",100],["Ensalada (lechuga, tomate, cebolla)",150],["Aguacate",40]]],
+  ["Sopa de quinua con huevo",[["Sopa de quinua",1],["Huevo entero",1],["Pan de agua",1]]],
+  ["Locro de papa",[["Locro de papa",1],["Aguacate",40]]],
+  ["Arroz con menestra y huevo",[["Arroz blanco cocido",100],["Menestra de fréjol",150],["Huevo entero",1],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Atún con choclo",[["Arroz blanco cocido",120],["Atún en agua (escurrido)",100],["Choclo cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Tortilla de huevo con pan",[["Tortilla de huevo con verduras",1],["Pan integral (rebanada)",2],["Tomate riñón",80]]],
+  ["Pollo con yuca",[["Pechuga de pollo cocida",120],["Yuca cocida",150],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Tilapia con verde",[["Tilapia cocida",150],["Verde cocido",120],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Humita y café con leche",[["Humita",1],["Café con leche y azúcar (taza)",1],["Huevo entero",1]]],
+  ["Caldo de gallina",[["Caldo de gallina",1],["Arroz blanco cocido",80]]],
+  ["Corviche con ensalada",[["Corviche",1],["Ensalada (lechuga, tomate, cebolla)",150]]]]
+};
+const DIAS=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const PSTEP={des:5,mm:3,alm:1,mt:7,cen:5};
+function pickIdx(i,id){const n=POOL[id].length,base=(i*PSTEP[id]+(id==="mt"?1:0))%n;return (base+((S.menuPick||{})[i+"_"+id]||0))%n}
+function menuDayObj(i){const m={},labels={};for(const id of ["des","mm","alm","mt","cen"]){const [lab,items]=POOL[id][pickIdx(i,id)];m[id]=items;labels[id]=lab}return {d:DIAS[i%7],m,labels}}
+let menuWeek=Math.floor(Date.now()/(7*864e5))%2;
 let menuDay=(new Date().getDay()+6)%7;
 function dayBase(day){let k=0;for(const id in day.m)for(const [n,q] of day.m[id])k+=nutr(findFood(n),q).k;return k}
 function scaleQ(f,q,fac){
@@ -865,8 +954,8 @@ function scaleQ(f,q,fac){
   if(f.u==="unidad")return Math.max(1,Math.round(q*fac));
   return Math.max(0.5,Math.round(q*fac*2)/2);
 }
-const SUB_VEG={"Pechuga de pollo cocida":["Chochos desamargados",1.5],"Hígado de res cocido":["Chochos desamargados",1.5],"Tilapia cocida":["Chochos desamargados",1.2],"Atún en agua (escurrido)":["Chochos desamargados",1.3],"Sardina en salsa de tomate":["Chochos desamargados",1.2],"Encebollado":["Cevichocho",1],"Seco de pollo con arroz y maduro":["Arroz con menestra y huevo frito",1]};
-const SUB_VGN={"Huevo entero":["Tofu",50],"Queso fresco":["Aguacate",1],"Leche entera":["Leche de soya",1],"Yogur natural":["Yogur de soya",1],"Humita":["Choclo cocido",150],"Bolón de verde con queso":["Verde cocido",200],"Locro de papa":["Sopa de quinua",1],"Arroz con menestra y huevo frito":["Arroz con menestra y maduro",1]};
+const SUB_VEG={"Carne de res magra cocida":["Chochos desamargados",1.5],"Carne de cerdo cocida":["Chochos desamargados",1.5],"Ceviche de pescado":["Cevichocho",1],"Guatita con arroz":["Arroz con menestra y huevo frito",1],"Caldo de gallina":["Sopa de quinua",1],"Caldo de bolas de verde":["Locro de papa",1],"Corviche":["Muchín de yuca",1],"Pechuga de pollo cocida":["Chochos desamargados",1.5],"Hígado de res cocido":["Chochos desamargados",1.5],"Tilapia cocida":["Chochos desamargados",1.2],"Atún en agua (escurrido)":["Chochos desamargados",1.3],"Sardina en salsa de tomate":["Chochos desamargados",1.2],"Encebollado":["Cevichocho",1],"Seco de pollo con arroz y maduro":["Arroz con menestra y huevo frito",1]};
+const SUB_VGN={"Huevo frito":["Tofu",50],"Tigrillo":["Verde cocido",200],"Tortilla de verde con queso":["Verde cocido",200],"Tortilla de huevo con verduras":["Tofu",120],"Choclo con queso":["Choclo cocido",150],"Café con leche y azúcar (taza)":["Leche de soya",200],"Colada de avena (vaso)":["Avena en hojuelas (cruda)",40],"Muchín de yuca":["Yuca cocida",150],"Huevo entero":["Tofu",50],"Queso fresco":["Aguacate",1],"Leche entera":["Leche de soya",1],"Yogur natural":["Yogur de soya",1],"Humita":["Choclo cocido",150],"Bolón de verde con queso":["Verde cocido",200],"Locro de papa":["Sopa de quinua",1],"Arroz con menestra y huevo frito":["Arroz con menestra y maduro",1]};
 function dietDay(day){
   const d=(S.profile&&S.profile.diet)||"balanceada",act=activeIds(),m={};
   const MERGE={mm:"des",mt:"alm",noc:"cen"};
@@ -891,29 +980,40 @@ function scaledDay(day){
 function renderMenus(){
   const G=goal();
   $("#menuGoal").innerHTML=G.def?`Usando una meta de ejemplo de <b>2000 kcal</b>. <a href="#calculadora" style="color:var(--acc)">Calcula la tuya</a> y el menú se ajusta solo.`:`Ajustado a tu meta de <b>${r0(G.kcal)} kcal</b> (${S.profile&&GOALS[S.profile.goal]?GOALS[S.profile.goal].n.toLowerCase():"tu objetivo"}), ${activeIds().length} comidas al día${S.profile&&S.profile.diet&&S.profile.diet!=="balanceada"?`, dieta <b>${DIETN[S.profile.diet].toLowerCase()}</b>`:""}.`+({vegetariana:" Cambié carnes y pescado por chochos, menestras y huevo.",vegana:" Cambié carnes, huevo y lácteos por chochos, tofu y soya.",lowcarb:" Reduje a la mitad arroz, verde, papa, pan y fruta.",keto:" Casi sin arroz, verde, papa, pan ni fruta; más aguacate. Para keto estricta revisa tus carbos en el Registro."}[S.profile&&S.profile.diet]||"");
-  $("#menuDays").innerHTML=MENU.map((d,i)=>`<button class="chip ${i===menuDay?"on":""}" data-md="${i}">${d.d}</button>`).join("");
-  const day=MENU[menuDay],sd=scaledDay(day);
+  $("#menuWeek").innerHTML=[0,1].map(w=>`<button type="button" data-mw="${w}" class="${w===menuWeek?"on":""}">Semana ${w+1}</button>`).join("");
+  $("#menuDays").innerHTML=DIAS.map((d,i)=>`<button class="chip ${i===menuDay?"on":""}" data-md="${i}">${d}</button>`).join("");
+  const di=menuWeek*7+menuDay,base=menuDayObj(di),sd=scaledDay(base);
+  const diet=S.profile&&S.profile.diet,veg=diet==="vegetariana"||diet==="vegana";
+  const act=activeIds(),MERGE={mm:"des",mt:"alm",noc:"cen"};
+  const srcOf=id=>["des","mm","alm","mt","cen"].filter(x=>(act.includes(x)?x:(act.includes(MERGE[x])?MERGE[x]:act[0]))===id);
   let T={k:0,p:0,c:0,f:0,$:0};
   const html=MEALS.filter(([id])=>sd.meals[id]).map(([id,name])=>{
     const items=sd.meals[id]||[];let mk=0;
     const rows=items.map(([f,q])=>{const n=nutr(f,q);mk+=n.k;for(const k in T)T[k]+=n[k];return `<div class="mi"><span>${esc(f.n)} <span class="mut">· ${qtyLabel(f,q)}</span></span><b>${r0(n.k)}</b></div>`}).join("");
-    return `<div class="mealtitle"><b>${name} <span class="mut small">${r0(mk)} kcal</span></b><button class="add" data-mmeal="${id}">+ Registrar</button></div>${rows}`;
+    const src=srcOf(id),lab=src.map(x=>base.labels[x]).join(" + ")+(veg?` (versión ${diet})`:"");
+    return `<div class="mealtitle"><div style="min-width:0"><b>${name} <span class="mut small">${r0(mk)} kcal</span></b><div class="small" style="color:#ff8a92">${esc(lab)}</div></div><div class="row" style="gap:6px;flex:0 0 auto"><button class="sm" data-swap="${src[0]}" aria-label="Cambiar por otra opción">🔄</button><button class="add" data-mmeal="${id}">+ Registrar</button></div></div>${rows}`;
   }).join("");
-  $("#menuDay").innerHTML=`<div class="row between"><h2 style="margin:0">${day.d}</h2><span class="small mut">porciones ×${sd.fac.toFixed(2)}</span></div>
+  $("#menuDay").innerHTML=`<div class="row between"><h2 style="margin:0">${base.d} <span class="mut small">· Semana ${menuWeek+1}</span></h2><span class="small mut">porciones ×${sd.fac.toFixed(2)}</span></div>
    <div class="grid3" style="margin:10px 0"><div class="stat"><div class="v ac">${r0(T.k)}</div><div class="l">kcal</div></div><div class="stat"><div class="v">$${T.$.toFixed(2)}</div><div class="l">costo aprox.</div></div><div class="stat"><div class="v pc">${r0(T.p)} g</div><div class="l">proteína</div></div></div>
    <div class="macros"><span class="pc">P ${r0(T.p)} g (${r0(T.p*4/T.k*100)}%)</span><span class="cc">C ${r0(T.c)} g (${r0(T.c*4/T.k*100)}%)</span><span class="fc">G ${r0(T.f)} g (${r0(T.f*9/T.k*100)}%)</span></div>
+   <p class="small mut" style="margin:8px 0 0">🔄 cambia cualquier comida por otra opción del menú.</p>
    ${html}
    <button class="pri full" id="menuAll" style="margin-top:14px">Registrar todo el día en ${cur.toDateString()===new Date().toDateString()?"hoy":"el día seleccionado"}</button>`;
-  // lista de compras
+  // lista de compras de la semana elegida
   const agg={};let cost=0;
-  MENU.forEach(d=>{const s=scaledDay(d);for(const id in s.meals)for(const [f,q] of s.meals[id]){agg[f.n]=(agg[f.n]||0)+q;cost+=nutr(f,q).$}});
+  for(let i=menuWeek*7;i<menuWeek*7+7;i++){const s2=scaledDay(menuDayObj(i));for(const id in s2.meals)for(const [f,q] of s2.meals[id]){agg[f.n]=(agg[f.n]||0)+q;cost+=nutr(f,q).$}}
+  $("#shopTitle").textContent=`Lista de compras · Semana ${menuWeek+1}`;
   $("#shopCost").textContent="$"+cost.toFixed(2);
   const byCat={};Object.keys(agg).forEach(n=>{const f=findFood(n);(byCat[f.cat]=byCat[f.cat]||[]).push([f,agg[n]])});
   $("#shopList").innerHTML=Object.keys(byCat).map(c=>`<h3>${esc(c)}</h3>`+byCat[c].map(([f,q])=>`<div class="mi"><span>${esc(f.n)}</span><span class="mut">${per100(f.u)?(q>=1000?r1(q/1000)+(f.u==="g"?" kg":" L"):r0(q)+" "+f.u):qtyLabel(f,q)}</span></div>`).join("")).join("")+`<p class="small mut">Precios estimados de mercado; varían por ciudad y temporada.</p>`;
 }
+$("#menuWeek").addEventListener("click",e=>{const b=e.target.closest("[data-mw]");if(b){menuWeek=+b.dataset.mw;renderMenus()}});
 $("#menuDays").addEventListener("click",e=>{const b=e.target.closest("[data-md]");if(b){menuDay=+b.dataset.md;renderMenus()}});
 $("#menuDay").addEventListener("click",e=>{
-  const sd=scaledDay(MENU[menuDay]);
+  const di=menuWeek*7+menuDay,sd=scaledDay(menuDayObj(di));
+  const w=e.target.closest("[data-swap]");if(w){const k=di+"_"+w.dataset.swap;S.menuPick=S.menuPick||{};S.menuPick[k]=(S.menuPick[k]||0)+1;
+    const id=w.dataset.swap;S.menuPick[k]%=POOL[id].length;
+    save();renderMenus();toast("Nueva opción: "+menuDayObj(di).labels[id]);return}
   const b=e.target.closest("[data-mmeal]");
   if(b){const id=b.dataset.mmeal;sd.meals[id].forEach(([f,q])=>addEntry(f,q,id));save();renderLog();toast(MEALS.find(m=>m[0]===id)[1]+" registrado");return}
   if(e.target.id==="menuAll"){for(const id in sd.meals)sd.meals[id].forEach(([f,q])=>addEntry(f,q,id));save();renderLog();toast("Día completo registrado")}
@@ -1643,6 +1743,7 @@ function renderPlan(P){
     <div class="week">${weekHtml}</div>
     <p class="small mut" style="margin:4px 0 8px">Los días sin número son descanso total o cardio suave. ${P.weekNote||""}</p>
     <div class="note small">👆 Toca la figura de cada ejercicio para ver cómo se hace, con consejos y videos.</div>
+    ${quoteHTML(quoteOfDay(5))}
     ${P.notes.map(n=>`<div class="note small">${n}</div>`).join("")}
     <div class="note small" style="background:rgba(90,169,255,.08);border-color:rgba(90,169,255,.3)"><b>Esquema:</b> ${P.scheme}.</div>
     ${S.profile&&GOALS[S.profile.goal]?(()=>{const pj=projection(S.profile,calc(S.profile));return pj.short?`<div class="note small">${pj.short}, si completas estos entrenos y tu dieta.</div>`:""})():""}
@@ -1795,7 +1896,7 @@ $("#pgList").addEventListener("click",e=>{
 const FB_V="10.12.2";
 const Cloud={on:false,user:null,fs:null,auth:null,base:null,dirty:new Set(),timer:null,unsub:null,status:"",last:0,busy:false};
 function chunksOf(st){
-  const c={main:JSON.stringify({custom:st.custom||[],goal:st.goal||null,profile:st.profile||null,train:st.train||null,wlog:st.wlog||[],water:st.water||{},suppLog:st.suppLog||{}})};
+  const c={main:JSON.stringify({custom:st.custom||[],goal:st.goal||null,profile:st.profile||null,train:st.train||null,wlog:st.wlog||[],water:st.water||{},suppLog:st.suppLog||{},menuPick:st.menuPick||{}})};
   const months={};for(const d in st.log||{}){if(!st.log[d]||!st.log[d].length)continue;const m="log_"+d.slice(0,7);(months[m]=months[m]||{})[d]=st.log[d]}
   for(const m in months)c[m]=JSON.stringify(months[m]);
   return c;
@@ -1812,7 +1913,7 @@ function cloudTrack(){
 }
 function applyChunk(k,json){
   const v=JSON.parse(json);
-  if(k==="main"){Object.assign(S,{custom:v.custom||[],goal:v.goal||null,profile:v.profile||null,train:v.train||null,wlog:v.wlog||[],water:v.water||{},suppLog:v.suppLog||{}});return}
+  if(k==="main"){Object.assign(S,{custom:v.custom||[],goal:v.goal||null,profile:v.profile||null,train:v.train||null,wlog:v.wlog||[],water:v.water||{},suppLog:v.suppLog||{},menuPick:v.menuPick||{}});return}
   const pre=k.slice(4);
   for(const d of Object.keys(S.log))if(d.startsWith(pre))delete S.log[d];
   Object.assign(S.log,v);
@@ -1841,7 +1942,7 @@ function mergeFirst(remote){
     const byId=(a,b,key)=>{const seen=new Set(a.map(x=>x[key]));return a.concat(b.filter(x=>!seen.has(x[key])))};
     S.custom=byId(m.custom||[],S.custom||[],"n");S.wlog=byId(m.wlog||[],S.wlog||[],"id");
     S.goal=m.goal||S.goal;S.profile=m.profile||S.profile;S.train=m.train||S.train;
-    S.water=Object.assign({},S.water||{},m.water||{});S.suppLog=Object.assign({},S.suppLog||{},m.suppLog||{});}
+    S.water=Object.assign({},S.water||{},m.water||{});S.suppLog=Object.assign({},S.suppLog||{},m.suppLog||{});S.menuPick=Object.assign({},S.menuPick||{},m.menuPick||{});}
   for(const k in R){if(!k.startsWith("log_"))continue;for(const d in R[k]){const loc=S.log[d]||[];const ids=new Set(R[k][d].map(e=>e.id));S.log[d]=R[k][d].concat(loc.filter(e=>!ids.has(e.id)))}}
   const now=Date.now();S.ts={};for(const k in chunksOf(S)){S.ts[k]=now;Cloud.dirty.add(k)}
 }
@@ -1944,7 +2045,7 @@ async function authDo(a){
       if(Cloud.dirty.size)return toast("Aún no se guardó todo en la nube. Conéctate a internet e inténtalo de nuevo.");
       await Cloud.auth.signOut();
       // Se borran los datos de este teléfono (ya están en la nube) para que otra cuenta no los mezcle.
-      S={log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{}};saveLocal();cloudBaseline();fillCalc();renderAll();fillTrain();
+      S={log:{},custom:[],goal:null,profile:null,water:{},train:null,wlog:[],suppLog:{},menuPick:{}};saveLocal();cloudBaseline();fillCalc();renderAll();fillTrain();
       toast("Sesión cerrada");
     }
     else if(a==="sync"){await cloudStart();toast("Sincronizado")}
@@ -1963,7 +2064,7 @@ renderMethInfo();setTrSex(S.profile&&S.profile.sex==="f"?"f":"m");$("#trForm").a
 $("#tSexSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(b){setTrSex(b.dataset.v);renderMethUI()}});
 $("#tLagChips").addEventListener("click",e=>{const b=e.target.closest("[data-lag]");if(!b)return;const k=b.dataset.lag;if(!k)lagSel=[];else if(lagSel.includes(k))lagSel=lagSel.filter(x=>x!==k);else{lagSel.push(k);if(lagSel.length>2)lagSel.shift()}renderLagChips();renderMethUI()});$("#methRec").addEventListener("click",e=>{const b=e.target.closest("[data-meth]");if(b){$("#tMeth").value=b.dataset.meth;renderMethUI()}});renderMethUI();
 fillCalc();fillTrain();renderAll();route();
-cloudBaseline();renderCloud();
+cloudBaseline();renderCloud();$("#gQuote").innerHTML=quoteHTML(QUOTES.filter(q=>q[2]==="q")[Math.floor(Math.random()*QUOTES.filter(q=>q[2]==="q").length)]);
 if(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey){if(!S.cloudUid)gate("load","Cargando…")}
 cloudInit();
 </script>
