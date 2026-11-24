@@ -125,6 +125,15 @@ li{margin:3px 0}
 .mi{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
 .mi:last-child{border-bottom:0}
 .hidden{display:none!important}
+.dayh{width:100%;display:flex;align-items:center;gap:8px;background:transparent;border:0;padding:0;color:var(--txt);text-align:left}
+.dayh .chev{font-size:18px;color:var(--mut);transition:transform .2s;margin-left:2px}
+.dayc.open .dayh .chev{transform:rotate(180deg)}
+.dayc .dayb{display:none}.dayc.open .dayb{display:block}
+details.fold>summary{list-style:none;cursor:pointer;padding:6px 0}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"▾";float:right;color:var(--mut)}
+details.fold[open]>summary::after{content:"▴"}
+details.card.fold{display:block}
 .quote{border-left:3px solid var(--acc);padding:6px 0 6px 12px;margin:8px 0}
 .quote .qt{font-size:15px;font-style:italic;line-height:1.45}
 .quote .qa{font-size:12.5px;color:var(--mut);margin-top:4px}
@@ -251,7 +260,7 @@ li{margin:3px 0}
 <section class="view" id="v-menus">
   <div class="card">
     <h2>Menú ecuatoriano económico</h2>
-    <p class="small mut" style="margin:0">2 semanas de menús con 60 opciones de comida ecuatoriana económica (bolón, humita, tigrillo, encebollado, seco, guatita, corviche, locro, menestras, chochos…). Toca 🔄 para cambiar cualquier comida. Las porciones se ajustan a tu meta y los precios son aproximados de mercado en Ecuador.</p>
+    <p class="small mut" style="margin:0">2 semanas de menús con casi 100 opciones de comida ecuatoriana económica (bolón, humita, tigrillo, tamal, encebollado, seco, guatita, arroz con pollo, estofado, corviche, locro, menestras, chochos, batidos…). Toca 🔄 para cambiar cualquier comida. Las porciones se ajustan a tu meta y los precios son aproximados de mercado en Ecuador.</p>
     <div class="note" id="menuGoal"></div>
     <div class="seg" id="menuWeek" style="margin:10px 0 8px"></div>
     <div class="chips" id="menuDays"></div>
@@ -395,14 +404,14 @@ li{margin:3px 0}
     </form>
   </div>
   <div id="trRes"></div>
-  <div class="card">
-    <h2>Métodos de entrenamiento</h2>
+  <details class="card fold">
+    <summary><b style="font-size:16px">📚 Métodos de entrenamiento</b> <span class="small mut">(cómo se hace cada uno)</span></summary>
     <p class="small mut" style="margin-top:0">Toca cada uno para ver cómo se hace.</p>
     <div id="methInfo"></div>
     <details><summary>Sobre los somatotipos</summary>
       <p class="small">El ectomorfo/mesomorfo/endomorfo es una guía práctica, no una ciencia exacta: la mayoría somos mezcla. Úsalo como punto de partida y ajusta según tu progreso real (fuerza, peso y medidas cada 2–4 semanas).</p>
     </details>
-  </div>
+  </details>
 </section>
 
 <!-- ============ PROGRESO ============ -->
@@ -637,7 +646,19 @@ const RAW = [
  ["Tortilla de verde con queso",380,9,55,14,"unidad",1,"Platos ecuatorianos",1.00,"tortilla verde queso"],
  ["Tortilla de huevo con verduras",200,13,6,14,"unidad",1,"Lácteos y huevos",0.50,"tortilla huevo omelette verduras"],
  ["Corviche",300,8,32,15,"unidad",1,"Platos ecuatorianos",1.00,"corviche verde pescado mani"],
- ["Muchín de yuca",220,4,30,10,"unidad",1,"Platos ecuatorianos",0.60,"muchin yuca"]
+ ["Muchín de yuca",220,4,30,10,"unidad",1,"Platos ecuatorianos",0.60,"muchin yuca"],
+ ["Batido de frutas con leche (vaso)",220,8,38,5,"unidad",1,"Bebidas",0.80,"batido fruta leche"],
+ ["Ensalada de frutas",60,0.7,15,0.2,"g",200,"Frutas",0.25,"ensalada frutas"],
+ ["Mermelada",250,0.4,62,0.1,"g",20,"Dulces",0.40,"mermelada"],
+ ["Sánduche de pollo",350,25,35,11,"unidad",1,"Comida rápida",1.50,"sanduche sandwich pollo"],
+ ["Tortilla de papa (2 huevos)",320,15,30,15,"unidad",1,"Lácteos y huevos",0.80,"tortilla papa huevo"],
+ ["Arroz con pollo",650,32,85,18,"plato",1,"Platos ecuatorianos",2.50,"arroz pollo"],
+ ["Sopa de fideo con pollo",320,18,40,9,"plato",1,"Platos ecuatorianos",1.50,"sopa fideo pollo"],
+ ["Estofado de pollo con arroz",620,35,80,16,"plato",1,"Platos ecuatorianos",2.75,"estofado pollo"],
+ ["Pescado apanado con arroz",680,32,80,24,"plato",1,"Platos ecuatorianos",3.00,"pescado apanado"],
+ ["Arroz relleno",600,20,90,16,"plato",1,"Platos ecuatorianos",2.00,"arroz relleno"],
+ ["Crema de zapallo",180,4,25,7,"plato",1,"Platos ecuatorianos",0.80,"crema zapallo sopa"],
+ ["Sopa de verduras",120,4,20,3,"plato",1,"Platos ecuatorianos",0.60,"sopa verduras"]
 ];
 const DB = RAW.map(r=>({n:r[0],k:r[1],p:r[2],c:r[3],f:r[4],u:r[5],porc:r[6],cat:r[7],price:r[8],kw:r[9]||""}));
 const MEALS = [["des","Desayuno"],["mm","Media mañana"],["alm","Almuerzo"],["mt","Media tarde"],["cen","Cena"],["noc","Antes de dormir"]];
@@ -909,10 +930,20 @@ const POOL={
   ["Yogur con avena y frutilla",[["Yogur natural",200],["Avena en hojuelas (cruda)",40],["Frutilla",100],["Maní",15]]],
   ["Tigrillo",[["Tigrillo",1],["Café negro",200]]],
   ["Choclo con queso y papaya",[["Choclo con queso",1],["Papaya",150],["Café negro",200]]],
-  ["Tortilla de huevo con pan",[["Tortilla de huevo con verduras",1],["Pan integral (rebanada)",2],["Naranja",150]]]],
+  ["Tortilla de huevo con pan",[["Tortilla de huevo con verduras",1],["Pan integral (rebanada)",2],["Naranja",150]]],
+  ["Batido de frutas y pan integral",[["Batido de frutas con leche (vaso)",1],["Pan integral (rebanada)",2],["Queso fresco",20]]],
+  ["Quinua con leche y guineo",[["Quinua cocida",150],["Leche entera",200],["Guineo / banano",80]]],
+  ["Pan con mermelada y huevo",[["Pan de agua",2],["Mermelada",20],["Huevo entero",1],["Café negro",200]]],
+  ["Tortilla de papa",[["Tortilla de papa (2 huevos)",1],["Jugo natural sin azúcar",250]]],
+  ["Empanada de viento y café con leche",[["Empanada de viento",1],["Café con leche y azúcar (taza)",1],["Huevo entero",1]]],
+  ["Tamal con café",[["Tamal de pollo",1],["Café negro",200],["Mandarina",120]]],
+  ["Quimbolito con yogur",[["Quimbolito",1],["Yogur natural",150],["Huevo entero",1]]],
+  ["Morocho con pan de yuca",[["Morocho (vaso)",1],["Pan de yuca",1],["Huevo entero",1]]]],
  mm:[["Guineo",[["Guineo / banano",120]]],["Mandarina con maní",[["Mandarina",150],["Maní",15]]],["Papaya",[["Papaya",200]]],["Huevos duros",[["Huevo entero",2]]],
   ["Yogur con guineo",[["Yogur natural",150],["Guineo / banano",80]]],["Tostado con chochos",[["Tostado",25],["Chochos desamargados",60]]],["Manzana con mantequilla de maní",[["Manzana",150],["Mantequilla de maní",16]]],
-  ["Sánduche de queso",[["Pan integral (rebanada)",2],["Queso fresco",30]]],["Piña",[["Piña",200]]],["Mango",[["Mango",150]]]],
+  ["Sánduche de queso",[["Pan integral (rebanada)",2],["Queso fresco",30]]],["Piña",[["Piña",200]]],["Mango",[["Mango",150]]],
+  ["Ensalada de frutas",[["Ensalada de frutas",200]]],["Batido de frutas",[["Batido de frutas con leche (vaso)",1]]],["Sandía",[["Sandía",300]]],
+  ["Uvas con queso",[["Uvas",100],["Queso fresco",20]]],["Naranja con maní",[["Naranja",150],["Maní",15]]],["Frutilla con yogur",[["Frutilla",150],["Yogur natural",100]]]],
  alm:[["Arroz, menestra de lenteja y pollo",[["Arroz blanco cocido",150],["Menestra de lenteja",200],["Pechuga de pollo cocida",120],["Ensalada (lechuga, tomate, cebolla)",100]]],
   ["Arroz, menestra y bistec de hígado",[["Arroz blanco cocido",150],["Menestra de fréjol",150],["Hígado de res cocido",120],["Maduro cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]]],
   ["Arroz con sardina y verde",[["Arroz blanco cocido",150],["Sardina en salsa de tomate",100],["Verde cocido",100],["Ensalada (lechuga, tomate, cebolla)",100]]],
@@ -927,10 +958,22 @@ const POOL={
   ["Caldo de bolas de verde",[["Caldo de bolas de verde",1],["Arroz blanco cocido",80]]],
   ["Tallarín con carne",[["Fideo / tallarín cocido",180],["Carne de res magra cocida",100],["Tomate riñón",80],["Ensalada (lechuga, tomate, cebolla)",100]]],
   ["Chuleta con menestra",[["Arroz blanco cocido",120],["Menestra de lenteja",180],["Carne de cerdo cocida",100],["Ensalada (lechuga, tomate, cebolla)",100]]],
-  ["Ceviche de pescado con chifles",[["Ceviche de pescado",1],["Canguil sin mantequilla",20],["Chifles",20],["Arroz blanco cocido",80]]]],
+  ["Ceviche de pescado con chifles",[["Ceviche de pescado",1],["Canguil sin mantequilla",20],["Chifles",20],["Arroz blanco cocido",80]]],
+  ["Arroz con pollo",[["Arroz con pollo",1],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Estofado de pollo",[["Estofado de pollo con arroz",1],["Ensalada (lechuga, tomate, cebolla)",80]]],
+  ["Pescado apanado",[["Pescado apanado con arroz",1],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Arroz relleno",[["Arroz relleno",1],["Ensalada (lechuga, tomate, cebolla)",100]]],
+  ["Chaulafán",[["Chaulafán",1]]],
+  ["Arroz con menestra y carne asada",[["Arroz con menestra y carne asada",1]]],
+  ["Arroz con menestra y pollo asado",[["Arroz con menestra y pollo asado",1]]],
+  ["Sopa de fideo y arroz con huevo",[["Sopa de fideo con pollo",1],["Arroz blanco cocido",100],["Huevo frito",1]]],
+  ["Crema de zapallo y pollo con arroz",[["Crema de zapallo",1],["Arroz blanco cocido",120],["Pechuga de pollo cocida",100]]],
+  ["Seco de carne",[["Seco de chivo / carne con arroz",1]]]],
  mt:[["Cevichocho casero",[["Chochos desamargados",100],["Tomate riñón",60],["Tostado",20]]],["Yogur con avena",[["Yogur natural",200],["Avena en hojuelas (cruda)",20]]],["Guineo con maní",[["Guineo / banano",100],["Maní",20]]],
-  ["Papaya",[["Papaya",200]]],["Pan de yuca con café",[["Pan de yuca",1],["Café negro",200]]],["Huevos duros",[["Huevo entero",2]]],["Sánduche de queso",[["Pan integral (rebanada)",2],["Queso fresco",30]]],
-  ["Mandarina y yogur",[["Mandarina",150],["Yogur natural",150]]],["Muchín de yuca",[["Muchín de yuca",1]]],["Choclo cocido",[["Choclo cocido",120],["Queso fresco",20]]]],
+  ["Piña con yogur",[["Piña",150],["Yogur natural",120]]],["Pan de yuca con café",[["Pan de yuca",1],["Café negro",200]]],["Tostado con queso",[["Tostado",30],["Queso fresco",30]]],["Empanada de verde",[["Empanada de verde",1]]],
+  ["Mandarina y yogur",[["Mandarina",150],["Yogur natural",150]]],["Muchín de yuca",[["Muchín de yuca",1]]],["Choclo cocido",[["Choclo cocido",120],["Queso fresco",20]]],
+  ["Ensalada de frutas con yogur",[["Ensalada de frutas",180],["Yogur natural",100]]],["Batido de frutas",[["Batido de frutas con leche (vaso)",1]]],["Humita",[["Humita",1]]],
+  ["Canguil con mandarina",[["Canguil sin mantequilla",30],["Mandarina",150]]],["Huevo duro y uvas",[["Huevo entero",1],["Uvas",100]]],["Manzana con queso",[["Manzana",150],["Queso fresco",25]]]],
  cen:[["Papa con huevo y aguacate",[["Papa cocida",200],["Huevo entero",1],["Aguacate",50],["Ensalada (lechuga, tomate, cebolla)",100]]],
   ["Arroz con atún",[["Arroz blanco cocido",100],["Atún en agua (escurrido)",100],["Ensalada (lechuga, tomate, cebolla)",150],["Aguacate",40]]],
   ["Sopa de quinua con huevo",[["Sopa de quinua",1],["Huevo entero",1],["Pan de agua",1]]],
@@ -942,10 +985,18 @@ const POOL={
   ["Tilapia con verde",[["Tilapia cocida",150],["Verde cocido",120],["Ensalada (lechuga, tomate, cebolla)",100]]],
   ["Humita y café con leche",[["Humita",1],["Café con leche y azúcar (taza)",1],["Huevo entero",1]]],
   ["Caldo de gallina",[["Caldo de gallina",1],["Arroz blanco cocido",80]]],
-  ["Corviche con ensalada",[["Corviche",1],["Ensalada (lechuga, tomate, cebolla)",150]]]]
+  ["Corviche con ensalada",[["Corviche",1],["Ensalada (lechuga, tomate, cebolla)",150]]],
+  ["Sopa de verduras con pollo",[["Sopa de verduras",1],["Pechuga de pollo cocida",100],["Pan integral (rebanada)",2]]],
+  ["Ensalada de atún",[["Atún en agua (escurrido)",100],["Ensalada (lechuga, tomate, cebolla)",150],["Choclo cocido",80],["Aguacate",40]]],
+  ["Ensalada rusa con pollo",[["Remolacha cocida",80],["Papa cocida",120],["Zanahoria",60],["Pechuga de pollo cocida",100]]],
+  ["Crema de zapallo con huevo",[["Crema de zapallo",1],["Huevo entero",2],["Pan integral (rebanada)",1]]],
+  ["Tortilla de papa con ensalada",[["Tortilla de papa (2 huevos)",1],["Ensalada (lechuga, tomate, cebolla)",150]]],
+  ["Quinua con pollo y brócoli",[["Quinua cocida",150],["Pechuga de pollo cocida",100],["Brócoli cocido",100]]],
+  ["Sánduche de pollo y jugo",[["Sánduche de pollo",1],["Jugo natural sin azúcar",250]]],
+  ["Arroz con huevo y maduro",[["Arroz blanco cocido",120],["Huevo frito",2],["Maduro cocido",80]]]]
 };
 const DIAS=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
-const PSTEP={des:5,mm:3,alm:1,mt:7,cen:5};
+const PSTEP={des:5,mm:3,alm:2,mt:7,cen:3};
 function pickIdx(i,id){const n=POOL[id].length,base=(i*PSTEP[id]+(id==="mt"?1:0))%n;return (base+((S.menuPick||{})[i+"_"+id]||0))%n}
 function menuDayObj(i){const m={},labels={};for(const id of ["des","mm","alm","mt","cen"]){const [lab,items]=POOL[id][pickIdx(i,id)];m[id]=items;labels[id]=lab}return {d:DIAS[i%7],m,labels}}
 let menuWeek=Math.floor(Date.now()/(7*864e5))%2;
@@ -956,8 +1007,8 @@ function scaleQ(f,q,fac){
   if(f.u==="unidad")return Math.max(1,Math.round(q*fac));
   return Math.max(0.5,Math.round(q*fac*2)/2);
 }
-const SUB_VEG={"Carne de res magra cocida":["Chochos desamargados",1.5],"Carne de cerdo cocida":["Chochos desamargados",1.5],"Ceviche de pescado":["Cevichocho",1],"Guatita con arroz":["Arroz con menestra y huevo frito",1],"Caldo de gallina":["Sopa de quinua",1],"Caldo de bolas de verde":["Locro de papa",1],"Corviche":["Muchín de yuca",1],"Pechuga de pollo cocida":["Chochos desamargados",1.5],"Hígado de res cocido":["Chochos desamargados",1.5],"Tilapia cocida":["Chochos desamargados",1.2],"Atún en agua (escurrido)":["Chochos desamargados",1.3],"Sardina en salsa de tomate":["Chochos desamargados",1.2],"Encebollado":["Cevichocho",1],"Seco de pollo con arroz y maduro":["Arroz con menestra y huevo frito",1]};
-const SUB_VGN={"Huevo frito":["Tofu",50],"Tigrillo":["Verde cocido",200],"Tortilla de verde con queso":["Verde cocido",200],"Tortilla de huevo con verduras":["Tofu",120],"Choclo con queso":["Choclo cocido",150],"Café con leche y azúcar (taza)":["Leche de soya",200],"Colada de avena (vaso)":["Avena en hojuelas (cruda)",40],"Muchín de yuca":["Yuca cocida",150],"Huevo entero":["Tofu",50],"Queso fresco":["Aguacate",1],"Leche entera":["Leche de soya",1],"Yogur natural":["Yogur de soya",1],"Humita":["Choclo cocido",150],"Bolón de verde con queso":["Verde cocido",200],"Locro de papa":["Sopa de quinua",1],"Arroz con menestra y huevo frito":["Arroz con menestra y maduro",1]};
+const SUB_VEG={"Arroz con pollo":["Arroz con menestra y huevo frito",1],"Estofado de pollo con arroz":["Arroz con menestra y huevo frito",1],"Pescado apanado con arroz":["Arroz con menestra y huevo frito",1],"Arroz relleno":["Arroz con menestra y huevo frito",1],"Chaulafán":["Arroz con menestra y huevo frito",1],"Arroz con menestra y carne asada":["Arroz con menestra y huevo frito",1],"Arroz con menestra y pollo asado":["Arroz con menestra y huevo frito",1],"Seco de chivo / carne con arroz":["Arroz con menestra y huevo frito",1],"Sopa de fideo con pollo":["Sopa de verduras",1],"Sánduche de pollo":["Tortilla de papa (2 huevos)",1],"Tamal de pollo":["Humita",1],"Carne de res magra cocida":["Chochos desamargados",1.5],"Carne de cerdo cocida":["Chochos desamargados",1.5],"Ceviche de pescado":["Cevichocho",1],"Guatita con arroz":["Arroz con menestra y huevo frito",1],"Caldo de gallina":["Sopa de quinua",1],"Caldo de bolas de verde":["Locro de papa",1],"Corviche":["Muchín de yuca",1],"Pechuga de pollo cocida":["Chochos desamargados",1.5],"Hígado de res cocido":["Chochos desamargados",1.5],"Tilapia cocida":["Chochos desamargados",1.2],"Atún en agua (escurrido)":["Chochos desamargados",1.3],"Sardina en salsa de tomate":["Chochos desamargados",1.2],"Encebollado":["Cevichocho",1],"Seco de pollo con arroz y maduro":["Arroz con menestra y huevo frito",1]};
+const SUB_VGN={"Tortilla de papa (2 huevos)":["Papa cocida",200],"Batido de frutas con leche (vaso)":["Ensalada de frutas",250],"Quimbolito":["Choclo cocido",150],"Empanada de viento":["Verde cocido",150],"Empanada de verde":["Verde cocido",150],"Pan de yuca":["Yuca cocida",120],"Morocho (vaso)":["Avena en hojuelas (cruda)",40],"Crema de zapallo":["Sopa de verduras",1],"Huevo frito":["Tofu",50],"Tigrillo":["Verde cocido",200],"Tortilla de verde con queso":["Verde cocido",200],"Tortilla de huevo con verduras":["Tofu",120],"Choclo con queso":["Choclo cocido",150],"Café con leche y azúcar (taza)":["Leche de soya",200],"Colada de avena (vaso)":["Avena en hojuelas (cruda)",40],"Muchín de yuca":["Yuca cocida",150],"Huevo entero":["Tofu",50],"Queso fresco":["Aguacate",1],"Leche entera":["Leche de soya",1],"Yogur natural":["Yogur de soya",1],"Humita":["Choclo cocido",150],"Bolón de verde con queso":["Verde cocido",200],"Locro de papa":["Sopa de quinua",1],"Arroz con menestra y huevo frito":["Arroz con menestra y maduro",1]};
 function dietDay(day){
   const d=(S.profile&&S.profile.diet)||"balanceada",act=activeIds(),m={};
   const MERGE={mm:"des",mt:"alm",noc:"cen"};
@@ -1208,7 +1259,7 @@ const EX={
  biceps:{n:"Bíceps",l:[{n:"Curl con barra"},{n:"Curl inclinado con mancuernas"},{n:"Curl martillo"}],fst:"Curl en polea baja"},
  triceps:{n:"Tríceps",l:[{n:"Extensión de tríceps en polea",t:"pre"},{n:"Fondos en paralelas o en banco",t:"post"},{n:"Press francés con barra Z"}],fst:"Extensión en polea con cuerda"},
  cuad:{n:"Cuádriceps",l:[{n:"Extensión de cuádriceps",t:"pre"},{n:"Prensa de piernas",t:"post"},{n:"Sentadilla con barra"},{n:"Sentadilla búlgara / zancadas"},{n:"Sentadilla hack o péndulo"}],fst:"Extensión de cuádriceps"},
- femoral:{n:"Femorales",l:[{n:"Curl femoral acostado"},{n:"Peso muerto rumano"},{n:"Curl femoral sentado"}],fst:"Curl femoral acostado o sentado"},
+ femoral:{n:"Femorales",l:[{n:"Curl femoral acostado"},{n:"Peso muerto rumano"},{n:"Curl femoral sentado"},{n:"Buenos días con barra"}],fst:"Curl femoral acostado o sentado"},
  gemelo:{n:"Pantorrillas",l:[{n:"Elevación de talones de pie"},{n:"Elevación de talones en prensa"}],fst:"Elevación de talones en prensa"},
  gluteo:{n:"Glúteos",l:[{n:"Hip thrust con barra"},{n:"Sentadilla sumo con mancuerna"},{n:"Patada de glúteo en polea"},{n:"Abducción de cadera en máquina"},{n:"Step-up al banco"},{n:"Zancada reversa con mancuernas"},{n:"Hiperextensión enfocada en glúteo"},{n:"Puente de glúteo a una pierna"}],fst:"Patada de glúteo en polea o abducción en máquina"},
  abs:{n:"Abdomen",l:[{n:"Crunch en polea"},{n:"Elevación de piernas colgado"},{n:"Plancha con peso"}]}
@@ -1238,7 +1289,7 @@ function genAuto(o,ov={}){
     dens:{sets:"1 calentamiento + 2 series al fallo",reps:"8–12 reps",rest:"60–90 s"},
     pri:{sets:"2 series (deja 1–2 reps en reserva)",reps:"8–12 reps",rest:"90 s–2 min"}}[style];
   const split=splitFor(o,SPLITS[days]);
-  const offs=o.sex==="f"?{}:null;
+  const offs={},fcnt={};
   // elegir días FST-7: priorizar los que contienen el músculo rezagado
   const order=split.map((s,i)=>i).sort((a,b)=>{const A=lag&&split[a][1].includes(lag)?0:1,B=lag&&split[b][1].includes(lag)?0:1;return A-B||a-b});
   // repartir para que no queden juntos si no hay rezagado
@@ -1260,7 +1311,7 @@ function genAuto(o,ov={}){
     const exs=[];
     mus.forEach(m=>{
       let list;
-      if(offs&&offs[m])list=rotList(m,offs).slice(0,cnt[m]);
+      if(offs&&offs[m]){const base=EX[m].l,k=offs[m]%base.length;list=[...base.slice(k),...base.slice(0,k)].slice(0,cnt[m])}
       else{list=EX[m].l.slice(0,cnt[m]);if(cnt[m]===1&&EX[m].l[0].t==="pre")list=[EX[m].l[1]];}
       if(offs)offs[m]=(offs[m]||0)+cnt[m];
       list.forEach((e,j)=>{
@@ -1269,7 +1320,7 @@ function genAuto(o,ov={}){
         const legs=["cuad","femoral","gemelo"].includes(m);
         exs.push({ns:style==="hd"?1:2,m:EX[m].n,n:e.n,sets:S_.sets,reps:legs&&style!=="hd"?"10–15 reps":(m==="gemelo"?"10–15 reps":S_.reps),rest:ss?"sin descanso → siguiente":S_.rest,ss,post});
       });
-      if(m===fstMus)exs.push({ns:7,m:EX[m].n,n:EX[m].fst,fst:true,sets:"7 series",reps:"8–12 reps",rest:"30–45 s (estira y posa)"});
+      if(m===fstMus)exs.push({ns:7,m:EX[m].n,n:fstName(m,fcnt),fst:true,sets:"7 series",reps:"8–12 reps",rest:"30–45 s (estira y posa)"});
     });
     let extra="";
     if(cardio&&min>=60)extra=`Cardio al final: ${somato==="endo"?"20 min caminata inclinada o bici moderada":"15 min caminata rápida"}.`;
@@ -1325,7 +1376,10 @@ const METHODS={
   desc:"Sin equipo (o con una barra de dominadas y una mochila con peso). Perfecto si no puedes pagar gym.",
   how:["Progresa haciendo el ejercicio más difícil: flexiones de rodillas → normales → pies elevados → a un brazo asistido.","Series al fallo técnico (cuando la forma se rompe, paras).","Para añadir peso usa una mochila con libros o botellas de agua.","Sube 1–2 reps por serie cada semana; cuando pases de 15–20, usa la versión más difícil."]}
 };
-const COMP=new Set(["Press inclinado con mancuernas","Fondos en paralelas (cuerpo inclinado)","Press de banca con barra","Jalón al pecho con agarre cerrado supino","Remo con barra o en máquina","Dominadas (asistidas si hace falta)","Remo con mancuerna a una mano","Press militar en máquina o con mancuernas","Fondos en paralelas o en banco","Prensa de piernas","Sentadilla con barra","Sentadilla búlgara / zancadas","Peso muerto rumano","Hip thrust con barra","Sentadilla sumo con mancuerna","Step-up al banco","Sentadilla hack o péndulo","Zancada reversa con mancuernas","Hiperextensión enfocada en glúteo"]);
+// Ejercicio FST-7 alternativo para la segunda vez que el músculo se entrena en la semana.
+const FST2={pecho:"Press en máquina convergente",espalda:"Jalón con brazos rectos en polea",hombro:"Press de hombros en máquina",biceps:"Curl en máquina predicador",triceps:"Extensión de tríceps sobre la cabeza en polea",cuad:"Prensa de piernas",femoral:"Curl femoral sentado",gemelo:"Elevación de talones sentado",gluteo:"Abducción de cadera en máquina"};
+function fstName(m,fcnt){fcnt[m]=(fcnt[m]||0)+1;return fcnt[m]%2===0&&FST2[m]?FST2[m]:EX[m].fst}
+const COMP=new Set(["Press inclinado con mancuernas","Fondos en paralelas (cuerpo inclinado)","Press de banca con barra","Jalón al pecho con agarre cerrado supino","Remo con barra o en máquina","Dominadas (asistidas si hace falta)","Remo con mancuerna a una mano","Press militar en máquina o con mancuernas","Fondos en paralelas o en banco","Prensa de piernas","Sentadilla con barra","Sentadilla búlgara / zancadas","Peso muerto rumano","Hip thrust con barra","Sentadilla sumo con mancuerna","Step-up al banco","Sentadilla hack o péndulo","Zancada reversa con mancuernas","Hiperextensión enfocada en glúteo","Buenos días con barra"]);
 const isC=e=>COMP.has(e.n);
 const MUSN={pecho:"Pecho",espalda:"Espalda",hombro:"Hombros",biceps:"Bíceps",triceps:"Tríceps",cuad:"Cuádriceps",femoral:"Femorales",gemelo:"Pantorrillas",gluteo:"Glúteos",abs:"Abdomen"};
 const X=(m,n,sets,reps,rest,ns,extra)=>Object.assign({m:MUSN[m]||m,n,sets,reps,rest,ns},extra||{});
@@ -1365,13 +1419,13 @@ function genBase(o){
 }
 function gymDays(o,P,split,perEx,scheme,opts={}){
   split=splitFor(o,split);
-  const offs=o.sex==="f"?{}:null;
+  const offs={},fcnt={};
   P.plan=split.map(([name,mus],i)=>{
     const fin=opts.fin?opts.fin(mus,i):[];
     const sel=pickEx(mus,nEx(o,perEx,fin.length*10+cardioRes(o),opts.cap),offs);
     const exs=[];
     mus.forEach(mm=>{sel.filter(x=>x.m===mm).forEach(({m,e},j)=>exs.push(X(m,e.n,...scheme(e,m,j))));
-      if(fin.includes(mm))exs.push(X(mm,EX[mm].fst,"7 series","8–12 reps","30–45 s (estira y posa)",7,{fst:true}))});
+      if(fin.includes(mm))exs.push(X(mm,fstName(mm,fcnt),"7 series","8–12 reps","30–45 s (estira y posa)",7,{fst:true}))});
     return {name,exs,extra:cardioTxt(o),tag:fin.length?["fst","FST-7"]:METHODS[o.method].tag};
   });
 }
@@ -1680,7 +1734,7 @@ const PAT={
  remo_inv:{n:"Remo invertido",props:'<line x1="46" y1="48" x2="112" y2="48" class="pb"/>'+FLOOR,a:"H:68,94 N:80,96 P:126,112 K:148,120 F:170,128 E:78,73 W:76,50",b:"H:70,60 N:82,64 P:128,96 K:150,112 E:100,74",
   tips:["Bajo una mesa firme o barra baja, cuerpo recto.","Jala el pecho hacia la barra.","Junta las escápulas arriba.","Pies más adelante = más difícil."],err:"Dejar caer la cadera."}
 };
-const FIG_RULES=[[/pullover/,"pullover"],[/frances|sobre la cabeza/,"frances"],[/extension (de )?triceps|extension en polea/,"pushdown"],[/extension de cuadriceps/,"ext_cuad"],[/nordico/,"nordico"],[/curl femoral/,"curl_fem"],[/hip thrust/,"hipthrust"],[/puente/,"puente"],[/patada/,"patada"],[/abduccion/,"abduccion"],[/step/,"stepup"],[/bulgara/,"bulgara"],[/zancada/,"zancada"],[/goblet|sumo/,"goblet"],[/salto|sentadilla/,"sentadilla"],[/prensa/,"prensa"],[/talones/,"talones"],[/peso muerto|hiperextension/,"pm"],[/swing/,"swing"],[/remo invertido/,"remo_inv"],[/remo sentado|polea baja/,"remo_polea"],[/remo/,"remo"],[/dominada/,"dominadas"],[/jalon/,"jalon"],[/face pull/,"facepull"],[/pajaros|reverse|posterior/,"pajaros"],[/elevaciones? (laterales|frontales)/,"lateral"],[/pike/,"pike"],[/militar|press de hombro|curl \+ press/,"militar"],[/apertura|cruce|pec deck/,"apertura"],[/fondos/,"fondos"],[/flexion|burpee/,"flexiones"],[/press inclinado/,"incline"],[/press/,"press"],[/curl/,"curl"],[/crunch en polea/,"crunch_polea"],[/crunch|bicho/,"crunch"],[/elevacion de piernas/,"elev_piernas"],[/mountain/,"mountain"],[/plancha|superman/,"plancha"]];
+const FIG_RULES=[[/pullover/,"pullover"],[/frances|sobre la cabeza/,"frances"],[/extension (de )?triceps|extension en polea/,"pushdown"],[/extension de cuadriceps/,"ext_cuad"],[/nordico/,"nordico"],[/curl femoral/,"curl_fem"],[/hip thrust/,"hipthrust"],[/puente/,"puente"],[/patada/,"patada"],[/abduccion/,"abduccion"],[/step/,"stepup"],[/bulgara/,"bulgara"],[/zancada/,"zancada"],[/goblet|sumo/,"goblet"],[/salto|sentadilla/,"sentadilla"],[/prensa/,"prensa"],[/talones/,"talones"],[/peso muerto|hiperextension|buenos dias/,"pm"],[/swing/,"swing"],[/remo invertido/,"remo_inv"],[/remo sentado|polea baja/,"remo_polea"],[/remo/,"remo"],[/dominada/,"dominadas"],[/jalon/,"jalon"],[/face pull/,"facepull"],[/pajaros|reverse|posterior/,"pajaros"],[/elevaciones? (laterales|frontales)/,"lateral"],[/pike/,"pike"],[/militar|press de hombro|curl \+ press/,"militar"],[/apertura|cruce|pec deck/,"apertura"],[/fondos/,"fondos"],[/flexion|burpee/,"flexiones"],[/press inclinado/,"incline"],[/press/,"press"],[/curl/,"curl"],[/crunch en polea/,"crunch_polea"],[/crunch|bicho/,"crunch"],[/elevacion de piernas/,"elev_piernas"],[/mountain/,"mountain"],[/plancha|superman/,"plancha"]];
 function figOf(name){const n=norm(name);for(const [re,k] of FIG_RULES)if(re.test(n))return k;return null}
 function parsePose(s){const o={};s.split(/\s+/).forEach(t=>{const [k,v]=t.split(":");const [x,y]=v.split(",").map(Number);o[k]=[x,y]});return o}
 const FIG_CACHE={};
@@ -1744,27 +1798,35 @@ function renderPlan(P){
     <p class="small mut" style="margin:2px 0 8px">${esc(M.by)} · ${P.o.sex==="f"?"Mujer · ":""}${somN} · ${P.days} días · ${P.o.min} min</p>
     <div class="week">${weekHtml}</div>
     <p class="small mut" style="margin:4px 0 8px">Los días sin número son descanso total o cardio suave. ${P.weekNote||""}</p>
-    <div class="note small">👆 Toca la figura de cada ejercicio para ver cómo se hace, con consejos y videos.</div>
     ${quoteHTML(quoteOfDay(5))}
+    <details class="fold"><summary>📋 Detalles de tu plan <span class="mut small">(${P.notes.length+1} notas)</span></summary>
     ${P.notes.map(n=>`<div class="note small">${n}</div>`).join("")}
-    <div class="note small" style="background:rgba(90,169,255,.08);border-color:rgba(90,169,255,.3)"><b>Esquema:</b> ${P.scheme}.</div>
+    <div class="note small" style="background:rgba(90,169,255,.08);border-color:rgba(90,169,255,.3)"><b>Esquema:</b> ${P.scheme}.</div></details>
     ${S.profile&&GOALS[S.profile.goal]?(()=>{const pj=projection(S.profile,calc(S.profile));return pj.short?`<div class="note small">${pj.short}, si completas estos entrenos y tu dieta.</div>`:""})():""}
     ${G?`<p class="small mut">Nutrición: tu meta es <b class="ac">${r0(G.kcal)} kcal</b> y <b class="pc">${r0(G.p)} g de proteína</b> al día.</p>`:`<p class="small mut"><a href="#calculadora" style="color:var(--acc)">Calcula tus calorías</a> para acompañar el plan.</p>`}
-  </div>`+P.plan.map((d,i)=>`<div class="card"><div class="row between"><h2 style="margin:0">Día ${i+1}: ${esc(d.name)}</h2><span class="tag ${d.tag[0]}">${esc(d.tag[1])}</span></div>
-    <p class="small mut" style="margin:4px 0 6px">Calentamiento 5 min (movilidad + series ligeras del primer ejercicio).</p>
+    <p class="small mut" style="margin:6px 0 0">👇 Toca cada día para abrirlo o cerrarlo. Toca la figura de un ejercicio para ver cómo se hace.</p>
+  </div>`+P.plan.map((d,i)=>{const open=trOpenDay(P,i),dn=DN[P.week[i]],today=P.week[i]===(new Date().getDay()+6)%7;return `<div class="card dayc ${open?"open":""}"><button type="button" class="dayh" data-dh="${i}"><div style="min-width:0;text-align:left"><h2 style="margin:0">Día ${i+1}: ${esc(d.name)}</h2><div class="small mut">${dn}${today?' · <b style="color:var(--acc)">HOY</b>':""} · ${d.exs.length} ejercicios</div></div><span class="tag ${d.tag[0]}">${esc(d.tag[1])}</span><span class="chev">▾</span></button>
+    <div class="dayb">
+    <p class="small mut" style="margin:8px 0 6px">Calentamiento 5 min (movilidad + series ligeras del primer ejercicio).</p>
     ${d.exs.map(e=>{const key=exKey(e);return `<div class="ex" data-key="${esc(key)}" data-n="${esc(e.n)}" data-m="${esc(e.m)}" data-ns="${e.ns||1}"><div class="exrow"><button type="button" class="figbtn" data-how aria-label="Ver cómo se hace">${figSVG(figOf(e.n),"th")||'<span style="font-size:20px">▶</span>'}</button><div class="grow"><div class="en">${esc(e.n)}${e.fst?`<span class="tag fst">FST-7</span>`:""}${e.ss?`<span class="tag ss">Superserie A1</span>`:""}${e.post?`<span class="tag ss">Superserie A2</span>`:""}${e.tag?`<span class="tag ${e.tag[0]}">${esc(e.tag[1])}</span>`:""}</div>
       <div class="es">${esc(e.m)} · ${esc(e.sets)} · ${esc(e.reps)} · ${e.ss?"":"descanso "}${esc(e.rest)}</div>${e.note?`<div class="small" style="margin-top:3px;color:#9ccbff">${e.note}</div>`:""}<div class="last">${lastTxt(key)}</div></div><button type="button" class="logbtn ${loggedToday(key)?"done":""}" data-log>${loggedToday(key)?"✓ Editar":"Anotar"}</button></div><div class="howbox"></div><div class="wfbox"></div></div>`}).join("")}
     ${d.extra?`<p class="small" style="margin:8px 0 0">🏃 ${d.extra}</p>`:""}
-  </div>`).join("")+`<div class="card"><h2>Reglas para progresar</h2><ul class="small">
+  </div></div>`}).join("")+`<details class="card fold"><summary><b style="font-size:16px">📈 Reglas para progresar</b></summary><ul class="small">
     <li>Anota peso y reps de cada serie efectiva. Cada sesión intenta superar en 1 rep o un poco más de peso.</li>
     <li>Si un ejercicio no mejora en 2 sesiones seguidas, añade un día extra de descanso o revisa sueño y calorías.</li>
     <li>Duerme 7–9 h. Sin recuperación ningún método funciona.</li>
-    <li>Cada 8–10 semanas toma una semana más suave (descarga).</li></ul></div>`;
+    <li>Cada 8–10 semanas toma una semana más suave (descarga).</li></ul></details>`;
+}
+// Días abiertos: por defecto el de hoy (o el próximo entreno); recuerda lo que abriste o cerraste.
+let trOpen=null;
+function trOpenDay(P,i){
+  if(!trOpen){const t=(new Date().getDay()+6)%7;let k=P.week.indexOf(t);if(k<0){k=P.week.findIndex(x=>x>t);if(k<0)k=0}trOpen=new Set([k])}
+  return trOpen.has(i);
 }
 $("#trForm").addEventListener("submit",e=>{
   e.preventDefault();
   const o=readTrainForm();
-  S.train=o;save();renderPlan(genPlan(o));collapseTrain(true);if(S.profile)collapseCalc(true);renderLog();$("#trRes").scrollIntoView({behavior:"smooth",block:"start"});
+  S.train=o;save();trOpen=null;renderPlan(genPlan(o));collapseTrain(true);if(S.profile)collapseCalc(true);renderLog();$("#trRes").scrollIntoView({behavior:"smooth",block:"start"});
 });
 // mini test somatotipo
 const QZ=[["Tu contextura natural (sin entrenar) es…",["Delgada, huesos finos, hombros estrechos","Atlética, hombros anchos y cintura estrecha","Ancha y redondeada, huesos grandes"]],
@@ -1805,6 +1867,7 @@ function trendHtml(h){const t=trendOf(h);if(!t)return "";const ic={up:"▲",down
 function unitOf(h){return h.some(w=>bestSet(w.sets).kg>0)?"kg":"reps"}
 
 $("#trRes").addEventListener("click",e=>{
+  const dh=e.target.closest("[data-dh]");if(dh){const i=+dh.dataset.dh,c=dh.closest(".dayc");trOpen=trOpen||new Set();if(trOpen.has(i))trOpen.delete(i);else trOpen.add(i);c.classList.toggle("open",trOpen.has(i));return}
   const ex=e.target.closest(".ex");if(!ex)return;
   if(e.target.closest("[data-how]")){const hb=ex.querySelector(".howbox");hb.innerHTML=hb.innerHTML?"":howHTML({n:ex.dataset.n});return}
   if(e.target.closest("[data-log]")){toggleForm(ex);return}
